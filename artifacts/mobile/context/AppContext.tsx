@@ -70,7 +70,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem(STORAGE_KEYS.APPOINTMENTS),
         ]);
 
-        if (role) setUserRoleState(role as UserRole);
+        setUserRoleState((role as UserRole) ?? "patient");
         if (patient) setPatientProfileState(JSON.parse(patient));
         else setPatientProfileState(DEFAULT_PATIENT);
         if (saved) setSavedDoctors(JSON.parse(saved));

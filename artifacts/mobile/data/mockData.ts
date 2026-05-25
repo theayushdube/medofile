@@ -79,7 +79,7 @@ export const SPECIALIZATIONS: Specialization[] = [
   { id: "6", name: "Gynecologist", icon: "woman", color: "#D53F8C" },
   { id: "7", name: "Dentist", icon: "medical", color: "#2B6CB0" },
   { id: "8", name: "Ophthalmologist", icon: "eye", color: "#2C7A7B" },
-  { id: "9", name: "Psychiatrist", icon: "brain", color: "#553C9A" },
+  { id: "9", name: "Psychiatrist", icon: "fitness", color: "#553C9A" },
   { id: "10", name: "ENT Specialist", icon: "ear", color: "#744210" },
   { id: "11", name: "General Physician", icon: "person", color: "#276749" },
   { id: "12", name: "Oncologist", icon: "shield-checkmark", color: "#C05621" },

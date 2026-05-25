@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: chat
+    description: Healthcare AI chatbot operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /chat:
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send a message to the healthcare AI chatbot (streaming SSE)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: SSE stream of chat tokens
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatError"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +59,33 @@ components:
           type: string
       required:
         - status
-
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+      required:
+        - role
+        - content
+    ChatRequest:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+        userLocation:
+          type: string
+          description: User's city/location for doctor recommendations
+      required:
+        - messages
+    ChatError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
