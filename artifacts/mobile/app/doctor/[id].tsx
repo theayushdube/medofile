@@ -33,9 +33,11 @@ const SOCIAL_ICONS: Record<string, { icon: string; color: string; label: string 
   youtube: { icon: "logo-youtube", color: "#FF0000", label: "YouTube" },
   linkedin: { icon: "logo-linkedin", color: "#0A66C2", label: "LinkedIn" },
   twitter: { icon: "logo-twitter", color: "#1DA1F2", label: "X / Twitter" },
+  x: { icon: "logo-twitter", color: "#000000", label: "X" },
   website: { icon: "globe-outline", color: "#2E7D32", label: "Website" },
   whatsapp: { icon: "logo-whatsapp", color: "#25D366", label: "WhatsApp" },
   telegram: { icon: "paper-plane-outline", color: "#0088CC", label: "Telegram" },
+  googleBusiness: { icon: "business-outline", color: "#4285F4", label: "Google Business" },
 };
 
 export default function DoctorProfileScreen() {
@@ -78,16 +80,26 @@ export default function DoctorProfileScreen() {
   function handleSocialPress(key: string, value: string) {
     const prefix: Record<string, string> = {
       instagram: "https://instagram.com/",
-      youtube: "https://youtube.com/",
+      youtube: "https://youtube.com/@",
       facebook: "https://facebook.com/",
       linkedin: "https://linkedin.com/in/",
       twitter: "https://x.com/",
+      x: "https://x.com/",
       website: "https://",
       whatsapp: "https://wa.me/",
       telegram: "https://t.me/",
+      googleBusiness: "https://g.co/kgs/",
     };
-    const url = value.startsWith("http") ? value : `${prefix[key] ?? ""}${value}`;
+    const url = value.startsWith("http") ? value : `${prefix[key] ?? ""}${value.replace(/^[@]/, "")}`;
     Linking.openURL(url).catch(() => {});
+  }
+
+  function handleCall() {
+    Linking.openURL(`tel:${doctor.phone}`).catch(() => {});
+  }
+
+  function handleDirections() {
+    Linking.openURL(doctor.location.mapsUrl).catch(() => {});
   }
 
   const s = StyleSheet.create({
@@ -551,8 +563,29 @@ export default function DoctorProfileScreen() {
           </View>
         </View>
 
-        {/* Action buttons */}
-        <View style={s.actionRow}>
+        {/* Action buttons row 1: Call, WhatsApp, Directions, Save */}
+        <View style={[s.actionRow, { marginBottom: 8 }]}>
+          <Pressable
+            style={[s.chatBtn, { flex: 1, backgroundColor: "#E8F5E9", borderColor: "#A5D6A7" }]}
+            onPress={handleCall}
+          >
+            <Ionicons name="call-outline" size={16} color="#2E7D32" />
+            <Text style={[s.chatBtnText, { color: "#2E7D32" }]}>Call</Text>
+          </Pressable>
+          <Pressable
+            style={[s.chatBtn, { flex: 1, backgroundColor: "#E8F5E9", borderColor: "#A5D6A7" }]}
+            onPress={() => handleSocialPress("whatsapp", doctor.socials.whatsapp ?? doctor.phone)}
+          >
+            <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
+            <Text style={[s.chatBtnText, { color: "#25D366" }]}>WhatsApp</Text>
+          </Pressable>
+          <Pressable
+            style={[s.chatBtn, { flex: 1, borderColor: colors.border }]}
+            onPress={handleDirections}
+          >
+            <Ionicons name="navigate-outline" size={16} color={colors.primary} />
+            <Text style={[s.chatBtnText, { color: colors.primary }]}>Directions</Text>
+          </Pressable>
           <Pressable style={s.saveBtn} onPress={handleSave}>
             <Ionicons
               name={saved ? "bookmark" : "bookmark-outline"}
@@ -560,6 +593,10 @@ export default function DoctorProfileScreen() {
               color={saved ? colors.primary : colors.foreground}
             />
           </Pressable>
+        </View>
+
+        {/* Action buttons row 2: Chat, Book */}
+        <View style={s.actionRow}>
           <Pressable style={s.chatBtn} onPress={handleChat}>
             <Ionicons name="chatbubble-outline" size={16} color={colors.foreground} />
             <Text style={s.chatBtnText}>Chat</Text>

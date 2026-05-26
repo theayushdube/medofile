@@ -13,6 +13,7 @@ export interface Doctor {
   address: string;
   landmark: string;
   city: string;
+  phone: string;
   about: string;
   languages: string[];
   availability: string;
@@ -22,6 +23,11 @@ export interface Doctor {
   consultationTypes: ("clinic" | "video" | "home")[];
   registrationNumber: string;
   avatar: string;
+  location: {
+    lat: number;
+    lng: number;
+    mapsUrl: string;
+  };
   socials: {
     instagram?: string;
     facebook?: string;
@@ -31,6 +37,17 @@ export interface Doctor {
     website?: string;
     whatsapp?: string;
     telegram?: string;
+    googleBusiness?: string;
+    x?: string;
+  };
+  analytics: {
+    impressions: number;
+    profileViews: number;
+    callClicks: number;
+    chatClicks: number;
+    bookings: number;
+    directionsClicks: number;
+    weeklyTrend: number[];
   };
   treatments: string[];
   education: Array<{ degree: string; college: string; year: number }>;
@@ -54,6 +71,9 @@ export interface Appointment {
   id: string;
   doctorId: string;
   patientName: string;
+  patientEmail?: string;
+  patientPhone?: string;
+  patientProblem?: string;
   date: string;
   time: string;
   type: "clinic" | "video" | "home";
@@ -79,7 +99,7 @@ export const SPECIALIZATIONS: Specialization[] = [
   { id: "6", name: "Gynecologist", icon: "woman", color: "#D53F8C" },
   { id: "7", name: "Dentist", icon: "medical", color: "#2B6CB0" },
   { id: "8", name: "Ophthalmologist", icon: "eye", color: "#2C7A7B" },
-  { id: "9", name: "Psychiatrist", icon: "fitness", color: "#553C9A" },
+  { id: "9", name: "Psychiatrist", icon: "accessibility", color: "#553C9A" },
   { id: "10", name: "ENT Specialist", icon: "ear", color: "#744210" },
   { id: "11", name: "General Physician", icon: "person", color: "#276749" },
   { id: "12", name: "Oncologist", icon: "shield-checkmark", color: "#C05621" },
@@ -101,6 +121,7 @@ export const DOCTORS: Doctor[] = [
     address: "42, MG Road, Connaught Place",
     landmark: "Near Metro Station",
     city: "New Delhi",
+    phone: "+91-9876543001",
     about:
       "Dr. Anil Sharma is a senior interventional cardiologist with 18+ years of experience. He specializes in complex coronary interventions, cardiac catheterization, and heart failure management. He has performed over 5000 cardiac procedures and is known for his compassionate approach.",
     languages: ["English", "Hindi"],
@@ -111,11 +132,28 @@ export const DOCTORS: Doctor[] = [
     consultationTypes: ["clinic", "video"],
     registrationNumber: "DMC-23456",
     avatar: "https://i.pravatar.cc/200?img=68",
+    location: {
+      lat: 28.6315,
+      lng: 77.2167,
+      mapsUrl: "https://maps.google.com/?q=Connaught+Place+New+Delhi",
+    },
     socials: {
       instagram: "@dranilsharma_cardio",
       youtube: "DrAnilSharmaCardio",
       website: "dranilsharma.com",
       linkedin: "dranilsharma",
+      x: "@dranilcardio",
+      googleBusiness: "ChIJLbZ-NFoaDTkRzBXxfgVA1Ig",
+      whatsapp: "+919876543001",
+    },
+    analytics: {
+      impressions: 4820,
+      profileViews: 1240,
+      callClicks: 186,
+      chatClicks: 203,
+      bookings: 94,
+      directionsClicks: 67,
+      weeklyTrend: [120, 145, 132, 178, 165, 190, 210],
     },
     treatments: [
       "Angioplasty",
@@ -158,6 +196,7 @@ export const DOCTORS: Doctor[] = [
     address: "15, Park Avenue, Bandra West",
     landmark: "Near Linking Road",
     city: "Mumbai",
+    phone: "+91-9876543002",
     about:
       "Dr. Priya Nair is a renowned dermatologist specializing in cosmetic dermatology, hair loss treatments, and skin disorders. She has trained in advanced laser and aesthetic procedures in the USA and Germany.",
     languages: ["English", "Hindi", "Malayalam"],
@@ -168,11 +207,28 @@ export const DOCTORS: Doctor[] = [
     consultationTypes: ["clinic", "video"],
     registrationNumber: "MMC-78901",
     avatar: "https://i.pravatar.cc/200?img=47",
+    location: {
+      lat: 19.0596,
+      lng: 72.8295,
+      mapsUrl: "https://maps.google.com/?q=Bandra+West+Mumbai",
+    },
     socials: {
       instagram: "@drpriyanair_skin",
       youtube: "GlowWithDrPriya",
       facebook: "drpriyanair",
       website: "glowskin.in",
+      x: "@drpriyanair",
+      whatsapp: "+919876543002",
+      googleBusiness: "ChIJbe3q6KDHwjsRb5R67b2QXos",
+    },
+    analytics: {
+      impressions: 6340,
+      profileViews: 2180,
+      callClicks: 241,
+      chatClicks: 318,
+      bookings: 127,
+      directionsClicks: 89,
+      weeklyTrend: [180, 210, 195, 225, 240, 260, 270],
     },
     treatments: [
       "Acne Treatment",
@@ -213,6 +269,7 @@ export const DOCTORS: Doctor[] = [
     address: "99, Sector 14, Gurugram",
     landmark: "Near Huda City Centre",
     city: "Gurugram",
+    phone: "+91-9876543003",
     about:
       "Dr. Rajesh Kumar is one of Delhi NCR's leading orthopedic surgeons, specializing in joint replacement surgery, sports injuries, and spine care. He has performed over 3000 joint replacement surgeries.",
     languages: ["English", "Hindi"],
@@ -223,9 +280,25 @@ export const DOCTORS: Doctor[] = [
     consultationTypes: ["clinic", "home"],
     registrationNumber: "HMC-34567",
     avatar: "https://i.pravatar.cc/200?img=12",
+    location: {
+      lat: 28.4595,
+      lng: 77.0266,
+      mapsUrl: "https://maps.google.com/?q=Sector+14+Gurugram",
+    },
     socials: {
       linkedin: "drrajeshkumar",
       website: "drkumarortho.com",
+      whatsapp: "+919876543003",
+      x: "@drrajeshortho",
+    },
+    analytics: {
+      impressions: 3210,
+      profileViews: 980,
+      callClicks: 142,
+      chatClicks: 98,
+      bookings: 76,
+      directionsClicks: 54,
+      weeklyTrend: [90, 105, 98, 115, 108, 120, 130],
     },
     treatments: [
       "Total Knee Replacement",
@@ -265,6 +338,7 @@ export const DOCTORS: Doctor[] = [
     address: "22, Jubilee Hills Road",
     landmark: "Near Film Nagar",
     city: "Hyderabad",
+    phone: "+91-9876543004",
     about:
       "Dr. Sneha Patel is a dedicated pediatrician and neonatologist with 14 years of experience. She specializes in newborn care, developmental pediatrics, and childhood vaccinations.",
     languages: ["English", "Hindi", "Telugu", "Gujarati"],
@@ -275,11 +349,27 @@ export const DOCTORS: Doctor[] = [
     consultationTypes: ["clinic", "video", "home"],
     registrationNumber: "TSMC-12345",
     avatar: "https://i.pravatar.cc/200?img=32",
+    location: {
+      lat: 17.4239,
+      lng: 78.4738,
+      mapsUrl: "https://maps.google.com/?q=Jubilee+Hills+Hyderabad",
+    },
     socials: {
       instagram: "@drsneha_pediatrics",
       youtube: "LittleStarsHealth",
       facebook: "drsnehapatelpeds",
-      whatsapp: "+91-9876543210",
+      whatsapp: "+919876543004",
+      x: "@drsnehapaed",
+      googleBusiness: "ChIJb0OBkM6ZyzsRBjRkPyS5CEM",
+    },
+    analytics: {
+      impressions: 5670,
+      profileViews: 1890,
+      callClicks: 267,
+      chatClicks: 312,
+      bookings: 148,
+      directionsClicks: 103,
+      weeklyTrend: [160, 185, 175, 200, 215, 230, 245],
     },
     treatments: [
       "Newborn Care",
@@ -318,6 +408,7 @@ export const DOCTORS: Doctor[] = [
     address: "Sector 38, Golf Course Road",
     landmark: "Near DLF Phase 4",
     city: "Gurugram",
+    phone: "+91-9876543005",
     about:
       "Dr. Vikram Mehta is a senior consultant neurologist with expertise in stroke, epilepsy, Parkinson's disease, and headache disorders. He has trained at Cleveland Clinic, USA.",
     languages: ["English", "Hindi"],
@@ -328,10 +419,26 @@ export const DOCTORS: Doctor[] = [
     consultationTypes: ["clinic", "video"],
     registrationNumber: "HMC-55678",
     avatar: "https://i.pravatar.cc/200?img=67",
+    location: {
+      lat: 28.4200,
+      lng: 77.0939,
+      mapsUrl: "https://maps.google.com/?q=Golf+Course+Road+Gurugram",
+    },
     socials: {
       linkedin: "drvikrammehta",
       twitter: "@drvikramneurology",
+      x: "@drvikramneurology",
       website: "neuromind.in",
+      whatsapp: "+919876543005",
+    },
+    analytics: {
+      impressions: 2980,
+      profileViews: 876,
+      callClicks: 112,
+      chatClicks: 134,
+      bookings: 58,
+      directionsClicks: 41,
+      weeklyTrend: [80, 95, 88, 102, 97, 115, 120],
     },
     treatments: [
       "Epilepsy Management",
@@ -372,6 +479,7 @@ export const DOCTORS: Doctor[] = [
     address: "78, AJC Bose Road",
     landmark: "Near Park Street Metro",
     city: "Kolkata",
+    phone: "+91-9876543006",
     about:
       "Dr. Ananya Roy is a highly experienced obstetrician and gynecologist. She specializes in high-risk pregnancy, laparoscopic surgery, infertility treatment, and women's health.",
     languages: ["English", "Hindi", "Bengali"],
@@ -382,10 +490,27 @@ export const DOCTORS: Doctor[] = [
     consultationTypes: ["clinic", "video", "home"],
     registrationNumber: "WBMC-67890",
     avatar: "https://i.pravatar.cc/200?img=21",
+    location: {
+      lat: 22.5448,
+      lng: 88.3503,
+      mapsUrl: "https://maps.google.com/?q=AJC+Bose+Road+Kolkata",
+    },
     socials: {
       instagram: "@drananyaroy_gyn",
       facebook: "womenwellnesskolkata",
       youtube: "DrAnanyaRoyGynecology",
+      whatsapp: "+919876543006",
+      x: "@drananyaroy",
+      googleBusiness: "ChIJp3iAj8V-AjoRFGibW9u6AvY",
+    },
+    analytics: {
+      impressions: 5120,
+      profileViews: 1650,
+      callClicks: 224,
+      chatClicks: 276,
+      bookings: 118,
+      directionsClicks: 87,
+      weeklyTrend: [145, 162, 155, 175, 185, 195, 205],
     },
     treatments: [
       "High-Risk Pregnancy",
@@ -426,6 +551,7 @@ export const DOCTORS: Doctor[] = [
     address: "112, 2nd Cross, Indiranagar",
     landmark: "Near 100 Feet Road",
     city: "Bengaluru",
+    phone: "+91-9876543007",
     about:
       "Dr. Suresh Venkatesh is a specialist in prosthodontics and implant dentistry. His clinic is equipped with the latest digital dentistry tools and provides comprehensive dental care.",
     languages: ["English", "Kannada", "Tamil", "Telugu"],
@@ -436,10 +562,27 @@ export const DOCTORS: Doctor[] = [
     consultationTypes: ["clinic"],
     registrationNumber: "KDC-23456",
     avatar: "https://i.pravatar.cc/200?img=53",
+    location: {
+      lat: 12.9784,
+      lng: 77.6408,
+      mapsUrl: "https://maps.google.com/?q=Indiranagar+Bengaluru",
+    },
     socials: {
       instagram: "@smilezone_dental",
       website: "smilezoneblr.com",
       facebook: "smilezoneblr",
+      whatsapp: "+919876543007",
+      x: "@smilezoneblr",
+      googleBusiness: "ChIJ2RHQ8sYUrjsR8Pfc4BvGk08",
+    },
+    analytics: {
+      impressions: 2540,
+      profileViews: 720,
+      callClicks: 98,
+      chatClicks: 76,
+      bookings: 52,
+      directionsClicks: 48,
+      weeklyTrend: [65, 78, 70, 85, 80, 90, 95],
     },
     treatments: [
       "Dental Implants",
@@ -479,6 +622,7 @@ export const DOCTORS: Doctor[] = [
     address: "45, 3rd Block, Rajajinagar",
     landmark: "Near BEL Circle",
     city: "Bengaluru",
+    phone: "+91-9876543008",
     about:
       "Dr. Meera Krishnaswamy provides comprehensive primary care for all age groups. She is known for her thorough approach, timely diagnosis, and personalized care.",
     languages: ["English", "Kannada", "Tamil"],
@@ -489,8 +633,24 @@ export const DOCTORS: Doctor[] = [
     consultationTypes: ["clinic", "video", "home"],
     registrationNumber: "KMC-45678",
     avatar: "https://i.pravatar.cc/200?img=44",
+    location: {
+      lat: 12.9902,
+      lng: 77.5559,
+      mapsUrl: "https://maps.google.com/?q=Rajajinagar+Bengaluru",
+    },
     socials: {
-      whatsapp: "+91-8765432109",
+      whatsapp: "+919876543008",
+      facebook: "meerafamilyclinic",
+      googleBusiness: "ChIJk0RYlA4UrjsRvY3i5RJzmRo",
+    },
+    analytics: {
+      impressions: 3890,
+      profileViews: 1120,
+      callClicks: 198,
+      chatClicks: 145,
+      bookings: 87,
+      directionsClicks: 72,
+      weeklyTrend: [110, 125, 118, 138, 130, 148, 155],
     },
     treatments: [
       "General Check-up",
@@ -572,7 +732,10 @@ export const SAMPLE_APPOINTMENTS: Appointment[] = [
   {
     id: "apt1",
     doctorId: "1",
-    patientName: "You",
+    patientName: "Arjun Mehta",
+    patientEmail: "arjun.mehta@gmail.com",
+    patientPhone: "+91 98765 43210",
+    patientProblem: "Routine cardiac checkup",
     date: "2025-06-15",
     time: "11:00 AM",
     type: "clinic",
@@ -584,7 +747,10 @@ export const SAMPLE_APPOINTMENTS: Appointment[] = [
   {
     id: "apt2",
     doctorId: "4",
-    patientName: "You",
+    patientName: "Arjun Mehta",
+    patientEmail: "arjun.mehta@gmail.com",
+    patientPhone: "+91 98765 43210",
+    patientProblem: "Child vaccination follow-up",
     date: "2025-06-20",
     time: "10:30 AM",
     type: "video",
@@ -595,7 +761,10 @@ export const SAMPLE_APPOINTMENTS: Appointment[] = [
   {
     id: "apt3",
     doctorId: "2",
-    patientName: "You",
+    patientName: "Arjun Mehta",
+    patientEmail: "arjun.mehta@gmail.com",
+    patientPhone: "+91 98765 43210",
+    patientProblem: "Skin consultation",
     date: "2025-05-20",
     time: "3:00 PM",
     type: "clinic",

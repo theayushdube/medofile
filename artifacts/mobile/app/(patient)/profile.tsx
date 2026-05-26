@@ -230,7 +230,7 @@ export default function ProfileScreen() {
           <MenuItem icon="lock-closed-outline" label="Privacy & Security" />
           <MenuItem icon="language-outline" label="Language" value="English" />
           <MenuItem icon="help-circle-outline" label="Help & Support" />
-          <MenuItem icon="information-circle-outline" label="About MediConnect" />
+          <MenuItem icon="information-circle-outline" label="About Medofile" />
         </View>
 
         <Text style={styles.sectionLabel}></Text>

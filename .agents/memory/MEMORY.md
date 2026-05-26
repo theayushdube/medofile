@@ -1,0 +1,3 @@
+- [Medofile project overview](medofile-overview.md) — Full healthcare platform: Expo mobile + React Vite web + Express API + AI chat. App renamed from MediConnect to Medofile.
+- [Mobile booking screen](medofile-booking.md) — 3-step flow: Date/Time → Patient Details (name/email/phone/problem) → Confirm. No payment gateway.
+- [Admin panel access](medofile-admin.md) — Web-only at /admin, password: medofile2026, uses localStorage for bookings.

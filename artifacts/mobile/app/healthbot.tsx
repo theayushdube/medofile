@@ -31,7 +31,7 @@ const WELCOME: Message = {
   id: "welcome",
   role: "assistant",
   content:
-    "Hello! I'm your MediConnect AI Health Assistant. I can help you with:\n\n• Health questions and symptoms\n• Finding the right specialist\n• General wellness advice\n• Doctor recommendations near you\n\nHow can I help you today?",
+    "Hello! I'm your Medofile AI Health Assistant. I can help you with:\n\n• Health questions and symptoms\n• Finding the right specialist\n• General wellness advice\n• Doctor recommendations near you\n\nHow can I help you today?",
 };
 
 const QUICK_PROMPTS = [
@@ -442,7 +442,7 @@ export default function HealthBotScreen() {
         </View>
         <View style={s.headerInfo}>
           <Text style={s.headerTitle}>AI Health Assistant</Text>
-          <Text style={s.headerSub}>{streaming ? "Thinking..." : "Online · MediConnect AI"}</Text>
+          <Text style={s.headerSub}>{streaming ? "Thinking..." : "Online · Medofile AI"}</Text>
         </View>
         <Pressable
           hitSlop={10}

@@ -1,6 +1,6 @@
 kind = "mobile"
 previewPath = "/"
-title = "MediConnect"
+title = "Medofile"
 version = "1.0.0"
 id = "artifacts/mobile"
 router = "expo-domain"

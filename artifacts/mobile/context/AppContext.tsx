@@ -35,10 +35,10 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 const STORAGE_KEYS = {
-  USER_ROLE: "@mediconnect_role",
-  PATIENT_PROFILE: "@mediconnect_patient",
-  SAVED_DOCTORS: "@mediconnect_saved",
-  APPOINTMENTS: "@mediconnect_appointments",
+  USER_ROLE: "@medofile_role",
+  PATIENT_PROFILE: "@medofile_patient",
+  SAVED_DOCTORS: "@medofile_saved",
+  APPOINTMENTS: "@medofile_appointments",
 };
 
 const DEFAULT_PATIENT: PatientProfile = {

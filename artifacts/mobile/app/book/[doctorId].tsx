@@ -5,11 +5,13 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -29,7 +31,6 @@ const CONSULT_OPTIONS: { type: ConsultType; label: string; icon: string; desc: s
 function getDates() {
   const dates: { label: string; day: string; full: string }[] = [];
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const today = new Date();
   for (let i = 0; i < 10; i++) {
     const d = new Date(today);
@@ -50,7 +51,7 @@ export default function BookScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { doctorId } = useLocalSearchParams<{ doctorId: string }>();
-  const { addAppointment } = useApp();
+  const { addAppointment, patientProfile } = useApp();
 
   const doctor = DOCTORS.find((d) => d.id === doctorId) ?? DOCTORS[0];
 
@@ -59,15 +60,39 @@ export default function BookScreen() {
   const [selectedBranch, setSelectedBranch] = useState(0);
   const [selectedDate, setSelectedDate] = useState(DATES[0].full);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [notes, setNotes] = useState("");
+
+  const [patientName, setPatientName] = useState(patientProfile?.name ?? "");
+  const [patientEmail, setPatientEmail] = useState(patientProfile?.email ?? "");
+  const [patientPhone, setPatientPhone] = useState(patientProfile?.phone ?? "");
+  const [patientProblem, setPatientProblem] = useState("");
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  const STEPS = ["Date & Time", "Your Details", "Confirm"];
 
   function handleNext() {
     if (step === 1 && !selectedTime) {
       Alert.alert("Select Time", "Please select a time slot to continue.");
       return;
+    }
+    if (step === 2) {
+      if (!patientName.trim()) {
+        Alert.alert("Required", "Please enter your name.");
+        return;
+      }
+      if (!patientEmail.trim() || !patientEmail.includes("@")) {
+        Alert.alert("Required", "Please enter a valid email address.");
+        return;
+      }
+      if (!patientPhone.trim()) {
+        Alert.alert("Required", "Please enter your phone number.");
+        return;
+      }
+      if (!patientProblem.trim()) {
+        Alert.alert("Required", "Please describe your health concern.");
+        return;
+      }
     }
     if (step < 3) {
       setStep(step + 1);
@@ -80,19 +105,22 @@ export default function BookScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     addAppointment({
       doctorId: doctor.id,
-      patientName: "You",
+      patientName: patientName,
+      patientEmail: patientEmail,
+      patientPhone: patientPhone,
+      patientProblem: patientProblem,
       date: selectedDate,
       time: selectedTime!,
       type: consultType,
       status: "upcoming",
       branch: consultType === "clinic" ? doctor.branches[selectedBranch]?.name : undefined,
       fee: doctor.fee,
-      notes: notes || undefined,
+      notes: patientProblem || undefined,
     });
     Alert.alert(
-      "Appointment Confirmed",
-      `Your appointment with ${doctor.name} is confirmed for ${selectedDate} at ${selectedTime}.`,
-      [{ text: "Done", onPress: () => router.replace("/(patient)/appointments") }]
+      "Appointment Confirmed!",
+      `Your appointment with ${doctor.name} is confirmed for ${selectedDate} at ${selectedTime}.\n\nA confirmation has been sent to ${patientEmail}.`,
+      [{ text: "View Appointments", onPress: () => router.replace("/(patient)/appointments") }]
     );
   }
 
@@ -123,16 +151,25 @@ export default function BookScreen() {
       color: colors.foreground,
       flex: 1,
     },
-    steps: {
+    stepIndicator: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
       flexDirection: "row",
-      paddingHorizontal: 20,
-      paddingVertical: 14,
-      gap: 8,
+      gap: 6,
+    },
+    stepItem: {
+      flex: 1,
+      alignItems: "center",
+      gap: 4,
     },
     stepBar: {
-      flex: 1,
-      height: 4,
+      width: "100%",
+      height: 3,
       borderRadius: 2,
+    },
+    stepLabel: {
+      fontSize: 10,
+      fontFamily: "Inter_400Regular",
     },
     docCard: {
       flexDirection: "row",
@@ -151,9 +188,7 @@ export default function BookScreen() {
       borderRadius: 24,
       backgroundColor: colors.muted,
     },
-    docInfo: {
-      marginLeft: 12,
-    },
+    docInfo: { marginLeft: 12, flex: 1 },
     docName: {
       fontSize: 14,
       fontFamily: "Inter_600SemiBold",
@@ -223,10 +258,7 @@ export default function BookScreen() {
       fontFamily: "Inter_400Regular",
       marginTop: 2,
     },
-    datesRow: {
-      paddingHorizontal: 16,
-      paddingBottom: 4,
-    },
+    datesRow: { paddingHorizontal: 16, paddingBottom: 4 },
     dateItem: {
       alignItems: "center",
       width: 56,
@@ -235,15 +267,8 @@ export default function BookScreen() {
       borderWidth: 1,
       marginRight: 8,
     },
-    dateDayLabel: {
-      fontSize: 10,
-      fontFamily: "Inter_500Medium",
-    },
-    dateDayNum: {
-      fontSize: 17,
-      fontFamily: "Inter_700Bold",
-      marginTop: 2,
-    },
+    dateDayLabel: { fontSize: 10, fontFamily: "Inter_500Medium" },
+    dateDayNum: { fontSize: 17, fontFamily: "Inter_700Bold", marginTop: 2 },
     timeSlotsGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -257,9 +282,40 @@ export default function BookScreen() {
       borderRadius: 8,
       borderWidth: 1,
     },
-    timeSlotText: {
-      fontSize: 12,
+    timeSlotText: { fontSize: 12, fontFamily: "Inter_500Medium" },
+    inputGroup: {
+      paddingHorizontal: 16,
+      marginBottom: 14,
+    },
+    inputLabel: {
+      fontSize: 13,
       fontFamily: "Inter_500Medium",
+      color: colors.foreground,
+      marginBottom: 6,
+    },
+    required: {
+      color: "#E53E3E",
+    },
+    input: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: colors.radius,
+      paddingHorizontal: 12,
+      paddingVertical: 11,
+      fontSize: 14,
+      color: colors.foreground,
+      fontFamily: "Inter_400Regular",
+    },
+    textArea: {
+      minHeight: 80,
+      textAlignVertical: "top",
+    },
+    emailNote: {
+      fontSize: 11,
+      color: colors.mutedForeground,
+      fontFamily: "Inter_400Regular",
+      marginTop: 4,
     },
     confirmCard: {
       marginHorizontal: 16,
@@ -273,6 +329,7 @@ export default function BookScreen() {
     confirmRow: {
       flexDirection: "row",
       justifyContent: "space-between",
+      alignItems: "flex-start",
     },
     confirmLabel: {
       fontSize: 13,
@@ -283,11 +340,11 @@ export default function BookScreen() {
       fontSize: 13,
       fontFamily: "Inter_500Medium",
       color: colors.foreground,
+      textAlign: "right",
+      flex: 1,
+      marginLeft: 12,
     },
-    divider: {
-      height: 1,
-      backgroundColor: colors.border,
-    },
+    divider: { height: 1, backgroundColor: colors.border },
     totalRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -302,6 +359,22 @@ export default function BookScreen() {
       fontSize: 17,
       fontFamily: "Inter_700Bold",
       color: colors.primary,
+    },
+    emailConfirmNote: {
+      backgroundColor: colors.secondary,
+      borderRadius: 10,
+      padding: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginHorizontal: 16,
+      marginTop: 12,
+    },
+    emailConfirmText: {
+      flex: 1,
+      fontSize: 12,
+      color: colors.primary,
+      fontFamily: "Inter_400Regular",
     },
     footer: {
       paddingHorizontal: 16,
@@ -327,13 +400,16 @@ export default function BookScreen() {
   const availTypes = doctor.consultationTypes;
 
   return (
-    <View style={s.container}>
+    <KeyboardAvoidingView
+      style={s.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <View style={s.header}>
         <Pressable style={s.backBtn} onPress={() => (step > 1 ? setStep(step - 1) : router.back())}>
           <Ionicons name="arrow-back" size={18} color={colors.foreground} />
         </Pressable>
         <Text style={s.headerTitle}>
-          {step === 1 ? "Select Date & Time" : step === 2 ? "Consultation Type" : "Confirm Booking"}
+          {STEPS[step - 1]}
         </Text>
         <Text style={{ fontSize: 12, color: colors.mutedForeground, fontFamily: "Inter_400Regular" }}>
           {step}/3
@@ -341,108 +417,42 @@ export default function BookScreen() {
       </View>
 
       {/* Progress bars */}
-      <View style={s.steps}>
-        {[1, 2, 3].map((n) => (
-          <View
-            key={n}
-            style={[
-              s.stepBar,
-              { backgroundColor: n <= step ? colors.primary : colors.border },
-            ]}
-          />
+      <View style={s.stepIndicator}>
+        {STEPS.map((label, i) => (
+          <View key={label} style={s.stepItem}>
+            <View
+              style={[
+                s.stepBar,
+                { backgroundColor: i + 1 <= step ? colors.primary : colors.border },
+              ]}
+            />
+            <Text
+              style={[
+                s.stepLabel,
+                { color: i + 1 <= step ? colors.primary : colors.mutedForeground },
+              ]}
+            >
+              {label}
+            </Text>
+          </View>
         ))}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }} keyboardShouldPersistTaps="handled">
         {/* Doctor mini-card */}
         <View style={s.docCard}>
           <Image source={{ uri: doctor.avatar }} style={s.docAvatar} contentFit="cover" />
           <View style={s.docInfo}>
             <Text style={s.docName}>{doctor.name}</Text>
-            <Text style={s.docSpec}>{doctor.specialization}</Text>
-            <Text style={s.feeLabel}>₹{doctor.fee} per consultation</Text>
+            <Text style={s.docSpec}>{doctor.specialization} • {doctor.city}</Text>
+            <Text style={s.feeLabel}>Consultation Fee: ₹{doctor.fee}</Text>
           </View>
         </View>
 
-        {/* Step 1: Date & Time */}
+        {/* Step 1: Date, Time & Consult Type */}
         {step === 1 && (
           <>
-            <Text style={s.sectionTitle}>Select Date</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={s.datesRow}
-              style={{ marginBottom: 20 }}
-            >
-              {DATES.map((d) => (
-                <Pressable
-                  key={d.full}
-                  style={[
-                    s.dateItem,
-                    {
-                      backgroundColor:
-                        selectedDate === d.full ? colors.primary : colors.card,
-                      borderColor:
-                        selectedDate === d.full ? colors.primary : colors.border,
-                    },
-                  ]}
-                  onPress={() => {
-                    setSelectedDate(d.full);
-                    setSelectedTime(null);
-                  }}
-                >
-                  <Text
-                    style={[
-                      s.dateDayLabel,
-                      { color: selectedDate === d.full ? "rgba(255,255,255,0.8)" : colors.mutedForeground },
-                    ]}
-                  >
-                    {d.label}
-                  </Text>
-                  <Text
-                    style={[
-                      s.dateDayNum,
-                      { color: selectedDate === d.full ? "#fff" : colors.foreground },
-                    ]}
-                  >
-                    {d.day}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-
-            <Text style={s.sectionTitle}>Select Time Slot</Text>
-            <View style={s.timeSlotsGrid}>
-              {TIME_SLOTS.map((t) => (
-                <Pressable
-                  key={t}
-                  style={[
-                    s.timeSlot,
-                    {
-                      backgroundColor: selectedTime === t ? colors.primary : colors.card,
-                      borderColor: selectedTime === t ? colors.primary : colors.border,
-                    },
-                  ]}
-                  onPress={() => setSelectedTime(t)}
-                >
-                  <Text
-                    style={[
-                      s.timeSlotText,
-                      { color: selectedTime === t ? "#fff" : colors.foreground },
-                    ]}
-                  >
-                    {t}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </>
-        )}
-
-        {/* Step 2: Consultation type */}
-        {step === 2 && (
-          <>
-            <Text style={s.sectionTitle}>How would you like to consult?</Text>
+            <Text style={s.sectionTitle}>Consultation Type</Text>
             <View style={s.consultTypes}>
               {CONSULT_OPTIONS.filter((o) => availTypes.includes(o.type)).map((o) => (
                 <Pressable
@@ -461,20 +471,10 @@ export default function BookScreen() {
                     size={22}
                     color={consultType === o.type ? colors.primary : colors.mutedForeground}
                   />
-                  <Text
-                    style={[
-                      s.consultLabel,
-                      { color: consultType === o.type ? colors.primary : colors.foreground },
-                    ]}
-                  >
+                  <Text style={[s.consultLabel, { color: consultType === o.type ? colors.primary : colors.foreground }]}>
                     {o.label}
                   </Text>
-                  <Text
-                    style={[
-                      s.consultDesc,
-                      { color: consultType === o.type ? colors.primary : colors.mutedForeground },
-                    ]}
-                  >
+                  <Text style={[s.consultDesc, { color: consultType === o.type ? colors.primary : colors.mutedForeground }]}>
                     {o.desc}
                   </Text>
                 </Pressable>
@@ -498,7 +498,7 @@ export default function BookScreen() {
                   >
                     <View style={{ flex: 1 }}>
                       <Text style={s.branchName}>{b.name}</Text>
-                      <Text style={s.branchAddr}>{b.address}</Text>
+                      <Text style={s.branchAddr}>{b.address} • {b.timing}</Text>
                     </View>
                     {selectedBranch === i && (
                       <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
@@ -507,6 +507,119 @@ export default function BookScreen() {
                 ))}
               </>
             )}
+
+            <Text style={[s.sectionTitle, { marginTop: 4 }]}>Select Date</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.datesRow}
+              style={{ marginBottom: 20 }}
+            >
+              {DATES.map((d) => (
+                <Pressable
+                  key={d.full}
+                  style={[
+                    s.dateItem,
+                    {
+                      backgroundColor: selectedDate === d.full ? colors.primary : colors.card,
+                      borderColor: selectedDate === d.full ? colors.primary : colors.border,
+                    },
+                  ]}
+                  onPress={() => { setSelectedDate(d.full); setSelectedTime(null); }}
+                >
+                  <Text style={[s.dateDayLabel, { color: selectedDate === d.full ? "rgba(255,255,255,0.8)" : colors.mutedForeground }]}>
+                    {d.label}
+                  </Text>
+                  <Text style={[s.dateDayNum, { color: selectedDate === d.full ? "#fff" : colors.foreground }]}>
+                    {d.day}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+
+            <Text style={s.sectionTitle}>Select Time Slot</Text>
+            <View style={s.timeSlotsGrid}>
+              {TIME_SLOTS.map((t) => (
+                <Pressable
+                  key={t}
+                  style={[
+                    s.timeSlot,
+                    {
+                      backgroundColor: selectedTime === t ? colors.primary : colors.card,
+                      borderColor: selectedTime === t ? colors.primary : colors.border,
+                    },
+                  ]}
+                  onPress={() => setSelectedTime(t)}
+                >
+                  <Text style={[s.timeSlotText, { color: selectedTime === t ? "#fff" : colors.foreground }]}>
+                    {t}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
+
+        {/* Step 2: Patient Details */}
+        {step === 2 && (
+          <>
+            <View style={[s.inputGroup, { marginTop: 4 }]}>
+              <Text style={s.inputLabel}>
+                Full Name <Text style={s.required}>*</Text>
+              </Text>
+              <TextInput
+                style={s.input}
+                value={patientName}
+                onChangeText={setPatientName}
+                placeholder="Enter your full name"
+                placeholderTextColor={colors.mutedForeground}
+              />
+            </View>
+
+            <View style={s.inputGroup}>
+              <Text style={s.inputLabel}>
+                Email Address <Text style={s.required}>*</Text>
+              </Text>
+              <TextInput
+                style={s.input}
+                value={patientEmail}
+                onChangeText={setPatientEmail}
+                placeholder="your@email.com"
+                placeholderTextColor={colors.mutedForeground}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+              <Text style={s.emailNote}>Booking confirmation will be sent to this email</Text>
+            </View>
+
+            <View style={s.inputGroup}>
+              <Text style={s.inputLabel}>
+                Phone Number <Text style={s.required}>*</Text>
+              </Text>
+              <TextInput
+                style={s.input}
+                value={patientPhone}
+                onChangeText={setPatientPhone}
+                placeholder="+91 98765 43210"
+                placeholderTextColor={colors.mutedForeground}
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={s.inputGroup}>
+              <Text style={s.inputLabel}>
+                Health Concern / Problem <Text style={s.required}>*</Text>
+              </Text>
+              <TextInput
+                style={[s.input, s.textArea]}
+                value={patientProblem}
+                onChangeText={setPatientProblem}
+                placeholder="Briefly describe your symptoms or reason for visit..."
+                placeholderTextColor={colors.mutedForeground}
+                multiline
+                numberOfLines={4}
+              />
+            </View>
           </>
         )}
 
@@ -518,6 +631,10 @@ export default function BookScreen() {
               <View style={s.confirmRow}>
                 <Text style={s.confirmLabel}>Doctor</Text>
                 <Text style={s.confirmValue}>{doctor.name}</Text>
+              </View>
+              <View style={s.confirmRow}>
+                <Text style={s.confirmLabel}>Patient</Text>
+                <Text style={s.confirmValue}>{patientName}</Text>
               </View>
               <View style={s.confirmRow}>
                 <Text style={s.confirmLabel}>Date</Text>
@@ -539,11 +656,22 @@ export default function BookScreen() {
                   <Text style={s.confirmValue}>{doctor.branches[selectedBranch].name}</Text>
                 </View>
               )}
+              <View style={s.confirmRow}>
+                <Text style={s.confirmLabel}>Concern</Text>
+                <Text style={s.confirmValue} numberOfLines={2}>{patientProblem}</Text>
+              </View>
               <View style={s.divider} />
               <View style={s.totalRow}>
                 <Text style={s.totalLabel}>Consultation Fee</Text>
                 <Text style={s.totalValue}>₹{doctor.fee}</Text>
               </View>
+            </View>
+
+            <View style={s.emailConfirmNote}>
+              <Ionicons name="mail" size={16} color={colors.primary} />
+              <Text style={s.emailConfirmText}>
+                Confirmation will be sent to {patientEmail}
+              </Text>
             </View>
           </>
         )}
@@ -556,6 +684,6 @@ export default function BookScreen() {
           </Text>
         </Pressable>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

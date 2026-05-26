@@ -45,7 +45,7 @@ export default function SplashScreen() {
           <Ionicons name="medical" size={44} color="#1B72E8" />
         </View>
 
-        <Text style={styles.appName}>MediConnect</Text>
+        <Text style={styles.appName}>Medofile</Text>
         <Text style={styles.tagline}>Your health, our priority</Text>
 
         <View style={styles.dotsRow}>
