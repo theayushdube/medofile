@@ -1,3 +1,4 @@
-- [Medofile project overview](medofile-overview.md) — Full healthcare platform: Expo mobile + React Vite web + Express API + AI chat. App renamed from MediConnect to Medofile.
-- [Mobile booking screen](medofile-booking.md) — 3-step flow: Date/Time → Patient Details (name/email/phone/problem) → Confirm. No payment gateway.
-- [Admin panel access](medofile-admin.md) — Web-only at /admin, password: medofile2026, uses localStorage for bookings.
+- [Medofile admin credentials](medofile-admin-creds.md) — JWT auth; superadmin = Anay@2302/Anjali@0223; admin = BrijeshDDPL/BrijeshV@2711; bcrypt-hashed in DB seed.
+- [Medofile API architecture](medofile-api-arch.md) — PostgreSQL via Drizzle; API seeds 8 doctors + admin users on startup via seedIfEmpty(); bookings post to /api/bookings; doctor suggestions at /api/doctors/suggestions.
+- [Medofile web doctor hook](medofile-web-doctor-hook.md) — useDoctors/useDoctor in src/hooks/useDoctors.ts; WebDoctor uses Omit<ApiDoctor,"id"> & {id:string} to avoid never type; 60s in-memory cache.
+- [Medofile video removal](medofile-video-removal.md) — Video consultation fully removed from web (DoctorCard, DoctorProfile, DoctorList filter, doctors.ts type) and mobile (booking, doctor profile consult types); API seed data uses clinic/home only.

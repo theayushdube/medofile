@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { Search, MapPin, Star, Shield, Video, Phone, ChevronDown, Sparkles, ArrowRight, CheckCircle, Heart, Brain, Bone, Baby, Eye, Smile } from "lucide-react";
-import { DOCTORS, SPECIALIZATIONS } from "@/data/doctors";
+import { Search, MapPin, Star, Shield, Phone, ChevronDown, Sparkles, ArrowRight, CheckCircle, Heart, Brain, Bone, Baby, Eye, Smile, LocateFixed } from "lucide-react";
+import { SPECIALIZATIONS } from "@/data/doctors";
+import { useDoctors } from "@/hooks/useDoctors";
 import { Navbar } from "@/components/Navbar";
 import { DoctorCard } from "@/components/DoctorCard";
 
@@ -9,21 +10,49 @@ const CITIES = ["New Delhi", "Mumbai", "Bengaluru", "Hyderabad", "Kolkata", "Gur
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const today = DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
 
+const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  "New Delhi": { lat: 28.6, lng: 77.2 }, "Mumbai": { lat: 19.07, lng: 72.87 },
+  "Bengaluru": { lat: 12.97, lng: 77.59 }, "Hyderabad": { lat: 17.38, lng: 78.48 },
+  "Kolkata": { lat: 22.57, lng: 88.36 }, "Gurugram": { lat: 28.46, lng: 77.03 },
+  "Chennai": { lat: 13.08, lng: 80.27 }, "Pune": { lat: 18.52, lng: 73.86 },
+};
+
+function nearestCity(lat: number, lng: number): string {
+  let best = "All Cities"; let bestDist = Infinity;
+  for (const [name, c] of Object.entries(CITY_COORDS)) {
+    const d = Math.hypot(lat - c.lat, lng - c.lng);
+    if (d < bestDist) { bestDist = d; best = name; }
+  }
+  return bestDist < 3 ? best : "All Cities";
+}
+
 export default function Home() {
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("All Cities");
   const [selectedSpec, setSelectedSpec] = useState("");
+  const [locating, setLocating] = useState(false);
+  const { doctors } = useDoctors();
+
+  function detectLocation() {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setCity(nearestCity(pos.coords.latitude, pos.coords.longitude)); setLocating(false); },
+      () => setLocating(false),
+      { timeout: 8000 }
+    );
+  }
 
   const filtered = useMemo(() => {
-    return DOCTORS.filter((d) => {
+    return doctors.filter((d) => {
       const q = search.toLowerCase();
       const matchSearch = !q || d.name.toLowerCase().includes(q) || d.specialization.toLowerCase().includes(q) || d.city.toLowerCase().includes(q);
       const matchCity = city === "All Cities" || d.city === city;
       const matchSpec = !selectedSpec || d.specialization === selectedSpec;
       return matchSearch && matchCity && matchSpec;
     });
-  }, [search, city, selectedSpec]);
+  }, [search, city, selectedSpec, doctors]);
 
   const showFiltered = !!(search || selectedSpec || city !== "All Cities");
 
@@ -71,8 +100,15 @@ export default function Home() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 sm:w-44">
-              <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 sm:w-52">
+              <button
+                title="Detect my location"
+                onClick={detectLocation}
+                className="shrink-0 hover:text-primary transition-colors disabled:opacity-50"
+                disabled={locating}
+              >
+                <LocateFixed className={`w-4 h-4 ${locating ? "animate-pulse text-primary" : "text-gray-400"}`} />
+              </button>
               <select
                 className="flex-1 bg-transparent text-gray-700 text-sm outline-none cursor-pointer"
                 value={city}
@@ -205,8 +241,8 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {(showFiltered ? filtered : DOCTORS.slice(0, 6)).map((doc) => (
-              <DoctorCard key={doc.id} doctor={doc} />
+            {(showFiltered ? filtered : doctors.slice(0, 6)).map((doc) => (
+              <DoctorCard key={doc.id} doctor={doc as any} />
             ))}
           </div>
         )}

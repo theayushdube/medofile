@@ -1,11 +1,12 @@
 import { useState } from "react";
+import React from "react";
 import { useRoute, useLocation } from "wouter";
 import {
-  Star, MapPin, Shield, Phone, MessageCircle, Calendar, Video, Home, Building2,
-  Navigation, ExternalLink, Clock, Award, GraduationCap, Globe, Instagram,
-  Youtube, Facebook, Linkedin, Twitter, ChevronLeft, TrendingUp
+  Star, MapPin, Shield, Phone, Calendar, Home, Building2,
+  Navigation, Clock, Award, GraduationCap, Globe, Instagram,
+  Youtube, Facebook, Linkedin, Twitter, ChevronLeft, ExternalLink, TrendingUp
 } from "lucide-react";
-import { DOCTORS, SPECIALIZATIONS } from "@/data/doctors";
+import { useDoctor } from "@/hooks/useDoctors";
 import { Navbar } from "@/components/Navbar";
 
 const TABS = ["Overview", "Treatments", "Reviews", "Location"] as const;
@@ -20,7 +21,7 @@ const REVIEWS = [
 ];
 
 function SocialIcon({ platform, value, label }: { platform: string; value: string; label: string }) {
-  const configs: Record<string, { icon: JSX.Element; color: string; prefix: string }> = {
+  const configs: Record<string, { icon: React.ReactNode; color: string; prefix: string }> = {
     instagram: { icon: <Instagram className="w-4 h-4" />, color: "bg-pink-500", prefix: "https://instagram.com/" },
     facebook: { icon: <Facebook className="w-4 h-4" />, color: "bg-blue-600", prefix: "https://facebook.com/" },
     linkedin: { icon: <Linkedin className="w-4 h-4" />, color: "bg-blue-700", prefix: "https://linkedin.com/in/" },
@@ -54,8 +55,28 @@ export default function DoctorProfile() {
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
   const [showMap, setShowMap] = useState(false);
 
-  const doctor = DOCTORS.find((d) => d.id === params?.id) ?? DOCTORS[0];
-  const reviews = REVIEWS.filter((r) => r.doctorId === doctor.id);
+  const { doctor, loading } = useDoctor(params?.id);
+  const reviews = REVIEWS.filter((r) => r.doctorId === params?.id);
+
+  if (loading) return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-muted-foreground text-sm animate-pulse">Loading doctor profile...</div>
+      </div>
+    </div>
+  );
+
+  if (!doctor) return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <div className="text-4xl">🔍</div>
+        <div className="font-semibold text-foreground">Doctor not found</div>
+        <button onClick={() => navigate("/doctors")} className="text-primary text-sm hover:underline">Browse all doctors</button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -145,10 +166,7 @@ export default function DoctorProfile() {
                 {doctor.consultationTypes.includes("clinic") && (
                   <span className="text-xs bg-white/15 rounded-lg px-2 py-1 flex items-center gap-1.5"><Building2 className="w-3 h-3" /> In-Clinic</span>
                 )}
-                {doctor.consultationTypes.includes("video") && (
-                  <span className="text-xs bg-white/15 rounded-lg px-2 py-1 flex items-center gap-1.5"><Video className="w-3 h-3" /> Video Call</span>
-                )}
-                {doctor.consultationTypes.includes("home") && (
+                  {doctor.consultationTypes.includes("home") && (
                   <span className="text-xs bg-white/15 rounded-lg px-2 py-1 flex items-center gap-1.5"><Home className="w-3 h-3" /> Home Visit</span>
                 )}
               </div>

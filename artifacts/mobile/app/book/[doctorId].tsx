@@ -20,11 +20,10 @@ import { useApp } from "@/context/AppContext";
 import { DOCTORS, TIME_SLOTS } from "@/data/mockData";
 import { useColors } from "@/hooks/useColors";
 
-type ConsultType = "clinic" | "video" | "home";
+type ConsultType = "clinic" | "home";
 
 const CONSULT_OPTIONS: { type: ConsultType; label: string; icon: string; desc: string }[] = [
   { type: "clinic", label: "In-Clinic", icon: "medical-outline", desc: "Visit the clinic" },
-  { type: "video", label: "Video Call", icon: "videocam-outline", desc: "Online consultation" },
   { type: "home", label: "Home Visit", icon: "home-outline", desc: "Doctor comes to you" },
 ];
 
@@ -101,14 +100,14 @@ export default function BookScreen() {
     }
   }
 
-  function confirmBooking() {
+  async function confirmBooking() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     addAppointment({
       doctorId: doctor.id,
-      patientName: patientName,
-      patientEmail: patientEmail,
-      patientPhone: patientPhone,
-      patientProblem: patientProblem,
+      patientName,
+      patientEmail,
+      patientPhone,
+      patientProblem,
       date: selectedDate,
       time: selectedTime!,
       type: consultType,
@@ -117,6 +116,27 @@ export default function BookScreen() {
       fee: doctor.fee,
       notes: patientProblem || undefined,
     });
+    try {
+      const apiBase = process.env.EXPO_PUBLIC_DOMAIN
+        ? `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`
+        : "/api";
+      await fetch(`${apiBase}/bookings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          doctorId: doctor.id,
+          patientName,
+          patientEmail,
+          patientPhone,
+          patientProblem,
+          date: selectedDate,
+          time: selectedTime!,
+          type: consultType,
+          branch: consultType === "clinic" ? doctor.branches[selectedBranch]?.name || "" : "",
+          fee: doctor.fee,
+        }),
+      });
+    } catch {}
     Alert.alert(
       "Appointment Confirmed!",
       `Your appointment with ${doctor.name} is confirmed for ${selectedDate} at ${selectedTime}.\n\nA confirmation has been sent to ${patientEmail}.`,
@@ -647,7 +667,7 @@ export default function BookScreen() {
               <View style={s.confirmRow}>
                 <Text style={s.confirmLabel}>Type</Text>
                 <Text style={s.confirmValue}>
-                  {consultType === "clinic" ? "In-Clinic" : consultType === "video" ? "Video Call" : "Home Visit"}
+                  {consultType === "clinic" ? "In-Clinic" : "Home Visit"}
                 </Text>
               </View>
               {consultType === "clinic" && doctor.branches[selectedBranch] && (

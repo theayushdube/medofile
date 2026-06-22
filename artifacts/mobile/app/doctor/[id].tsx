@@ -331,21 +331,24 @@ export default function DoctorProfileScreen() {
       flexWrap: "wrap",
       gap: 8,
     },
-    socialChip: {
-      flexDirection: "row",
+    socialIconBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       alignItems: "center",
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: colors.radius,
-      backgroundColor: colors.card,
+      justifyContent: "center",
       borderWidth: 1,
       borderColor: colors.border,
+      backgroundColor: colors.card,
     },
-    socialLabel: {
-      fontSize: 12,
-      fontFamily: "Inter_500Medium",
-      color: colors.foreground,
+    socialIconRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
     },
     treatmentChip: {
       paddingHorizontal: 12,
@@ -595,6 +598,26 @@ export default function DoctorProfileScreen() {
           </Pressable>
         </View>
 
+        {/* Social icon-only row — shown right below Call/WhatsApp/Directions */}
+        {socials.length > 0 && (
+          <View style={s.socialIconRow}>
+            {socials.map(([key, value]) => {
+              const info = SOCIAL_ICONS[key];
+              if (!info) return null;
+              return (
+                <Pressable
+                  key={key}
+                  style={[s.socialIconBtn, { borderColor: `${info.color}40` }]}
+                  onPress={() => handleSocialPress(key, value!)}
+                  hitSlop={4}
+                >
+                  <Ionicons name={info.icon as any} size={20} color={info.color} />
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+
         {/* Action buttons row 2: Chat, Book */}
         <View style={s.actionRow}>
           <Pressable style={s.chatBtn} onPress={handleChat}>
@@ -693,12 +716,12 @@ export default function DoctorProfileScreen() {
                 {doctor.consultationTypes.map((t) => (
                   <View key={t} style={s.consultTypeChip}>
                     <Ionicons
-                      name={t === "clinic" ? "medical-outline" : t === "video" ? "videocam-outline" : "home-outline"}
+                      name={t === "clinic" ? "medical-outline" : "home-outline"}
                       size={14}
                       color={colors.primary}
                     />
                     <Text style={s.consultTypeText}>
-                      {t === "clinic" ? "In-Clinic" : t === "video" ? "Video Call" : "Home Visit"}
+                      {t === "clinic" ? "In-Clinic" : "Home Visit"}
                     </Text>
                   </View>
                 ))}
@@ -746,27 +769,7 @@ export default function DoctorProfileScreen() {
               </View>
             )}
 
-            {socials.length > 0 && (
-              <View style={s.sectionPad}>
-                <Text style={s.sectionTitle}>Connect</Text>
-                <View style={s.socialGrid}>
-                  {socials.map(([key, value]) => {
-                    const info = SOCIAL_ICONS[key];
-                    if (!info) return null;
-                    return (
-                      <Pressable
-                        key={key}
-                        style={s.socialChip}
-                        onPress={() => handleSocialPress(key, value!)}
-                      >
-                        <Ionicons name={info.icon as any} size={16} color={info.color} />
-                        <Text style={s.socialLabel}>{info.label}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-            )}
+            {/* Social links are shown in the icon row above the tabs — no duplicate here */}
 
             {doctor.insurances.length > 0 && (
               <View style={s.sectionPad}>

@@ -30,10 +30,10 @@ import { DOCTORS, SPECIALIZATIONS } from "@/data/mockData";
 import { useColors } from "@/hooks/useColors";
 
 const QUICK_ACTIONS = [
-  { label: "Video Consult", icon: "videocam-outline", color: "#805AD5", bg: "#EDE7F6" },
   { label: "Home Visit", icon: "home-outline", color: "#DD6B20", bg: "#FFF3E0" },
   { label: "Emergency", icon: "medkit-outline", color: "#C62828", bg: "#FFEBEE" },
   { label: "Lab Tests", icon: "flask-outline", color: "#2E7D32", bg: "#E8F5E9" },
+  { label: "AI Health Bot", icon: "sparkles-outline", color: "#1B72E8", bg: "#EFF6FF" },
 ];
 
 const HEALTH_TIPS = [

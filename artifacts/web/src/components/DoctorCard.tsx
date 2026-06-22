@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Star, MapPin, Shield, Clock, Video, Home, Building2, Phone } from "lucide-react";
+import { Star, MapPin, Shield, Clock, Home, Building2, Phone } from "lucide-react";
 import type { Doctor } from "@/data/doctors";
 
 interface Props {
@@ -63,11 +63,6 @@ export function DoctorCard({ doctor, compact = false }: Props) {
               {doctor.consultationTypes.includes("clinic") && (
                 <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-lg">
                   <Building2 className="w-3 h-3" /> Clinic
-                </span>
-              )}
-              {doctor.consultationTypes.includes("video") && (
-                <span className="inline-flex items-center gap-1 text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-lg">
-                  <Video className="w-3 h-3" /> Video
                 </span>
               )}
               {doctor.consultationTypes.includes("home") && (

@@ -18,7 +18,7 @@ export interface Doctor {
   isVerified: boolean;
   isPremium: boolean;
   gender: "Male" | "Female";
-  consultationTypes: ("clinic" | "video" | "home")[];
+  consultationTypes: ("clinic" | "home")[];
   registrationNumber: string;
   avatar: string;
   location: { lat: number; lng: number; mapsUrl: string };
@@ -65,7 +65,7 @@ export const DOCTORS: Doctor[] = [
     about: "Dr. Anil Sharma is a senior interventional cardiologist with 18+ years of experience. He specializes in complex coronary interventions, cardiac catheterization, and heart failure management. He has performed over 5000 cardiac procedures.",
     languages: ["English", "Hindi"], availability: "Mon-Sat, 10am-7pm",
     isVerified: true, isPremium: true, gender: "Male",
-    consultationTypes: ["clinic", "video"], registrationNumber: "DMC-23456",
+    consultationTypes: ["clinic"], registrationNumber: "DMC-23456",
     avatar: "https://i.pravatar.cc/200?img=68",
     location: { lat: 28.6315, lng: 77.2167, mapsUrl: "https://maps.google.com/?q=Connaught+Place+New+Delhi" },
     socials: { instagram: "@dranilsharma_cardio", youtube: "DrAnilSharmaCardio", website: "dranilsharma.com", linkedin: "dranilsharma", x: "@dranilcardio", googleBusiness: "ChIJ123", whatsapp: "+919876543001" },
@@ -85,7 +85,7 @@ export const DOCTORS: Doctor[] = [
     about: "Dr. Priya Nair is a renowned dermatologist specializing in cosmetic dermatology, hair loss treatments, and skin disorders. She has trained in advanced laser and aesthetic procedures in the USA and Germany.",
     languages: ["English", "Hindi", "Malayalam"], availability: "Mon-Fri, 9am-6pm",
     isVerified: true, isPremium: true, gender: "Female",
-    consultationTypes: ["clinic", "video"], registrationNumber: "MMC-78901",
+    consultationTypes: ["clinic"], registrationNumber: "MMC-78901",
     avatar: "https://i.pravatar.cc/200?img=47",
     location: { lat: 19.0596, lng: 72.8295, mapsUrl: "https://maps.google.com/?q=Bandra+West+Mumbai" },
     socials: { instagram: "@drpriyanair_skin", youtube: "GlowWithDrPriya", facebook: "drpriyanair", website: "glowskin.in", x: "@drpriyanair", whatsapp: "+919876543002", googleBusiness: "ChIJ456" },
@@ -125,7 +125,7 @@ export const DOCTORS: Doctor[] = [
     about: "Dr. Sneha Patel is a dedicated pediatrician and neonatologist with 14 years of experience. She specializes in newborn care, developmental pediatrics, and childhood vaccinations.",
     languages: ["English", "Hindi", "Telugu", "Gujarati"], availability: "Mon-Sat, 9am-5pm",
     isVerified: true, isPremium: true, gender: "Female",
-    consultationTypes: ["clinic", "video", "home"], registrationNumber: "TSMC-12345",
+    consultationTypes: ["clinic", "home"], registrationNumber: "TSMC-12345",
     avatar: "https://i.pravatar.cc/200?img=32",
     location: { lat: 17.4239, lng: 78.4738, mapsUrl: "https://maps.google.com/?q=Jubilee+Hills+Hyderabad" },
     socials: { instagram: "@drsneha_pediatrics", youtube: "LittleStarsHealth", facebook: "drsnehapatelpeds", whatsapp: "+919876543004", x: "@drsnehapaed", googleBusiness: "ChIJ789" },
@@ -145,7 +145,7 @@ export const DOCTORS: Doctor[] = [
     about: "Dr. Vikram Mehta is a senior consultant neurologist with expertise in stroke, epilepsy, Parkinson's disease, and headache disorders. He has trained at Cleveland Clinic, USA.",
     languages: ["English", "Hindi"], availability: "Tue-Sat, 10am-6pm",
     isVerified: true, isPremium: true, gender: "Male",
-    consultationTypes: ["clinic", "video"], registrationNumber: "HMC-55678",
+    consultationTypes: ["clinic"], registrationNumber: "HMC-55678",
     avatar: "https://i.pravatar.cc/200?img=67",
     location: { lat: 28.4200, lng: 77.0939, mapsUrl: "https://maps.google.com/?q=Golf+Course+Road+Gurugram" },
     socials: { linkedin: "drvikrammehta", x: "@drvikramneurology", website: "neuromind.in", whatsapp: "+919876543005" },
@@ -165,7 +165,7 @@ export const DOCTORS: Doctor[] = [
     about: "Dr. Ananya Roy is a highly experienced obstetrician and gynecologist. She specializes in high-risk pregnancy, laparoscopic surgery, infertility treatment, and women's health.",
     languages: ["English", "Hindi", "Bengali"], availability: "Mon-Sat, 10am-6pm",
     isVerified: true, isPremium: true, gender: "Female",
-    consultationTypes: ["clinic", "video", "home"], registrationNumber: "WBMC-67890",
+    consultationTypes: ["clinic", "home"], registrationNumber: "WBMC-67890",
     avatar: "https://i.pravatar.cc/200?img=21",
     location: { lat: 22.5448, lng: 88.3503, mapsUrl: "https://maps.google.com/?q=AJC+Bose+Road+Kolkata" },
     socials: { instagram: "@drananyaroy_gyn", facebook: "womenwellnesskolkata", youtube: "DrAnanyaRoyGynecology", whatsapp: "+919876543006", x: "@drananyaroy", googleBusiness: "ChIJ012" },
@@ -205,7 +205,7 @@ export const DOCTORS: Doctor[] = [
     about: "Dr. Meera Krishnaswamy provides comprehensive primary care for all age groups. She is known for her thorough approach, timely diagnosis, and personalized care.",
     languages: ["English", "Kannada", "Tamil"], availability: "Mon-Sat, 8am-9pm",
     isVerified: true, isPremium: false, gender: "Female",
-    consultationTypes: ["clinic", "video", "home"], registrationNumber: "KMC-45678",
+    consultationTypes: ["clinic", "home"], registrationNumber: "KMC-45678",
     avatar: "https://i.pravatar.cc/200?img=44",
     location: { lat: 12.9902, lng: 77.5559, mapsUrl: "https://maps.google.com/?q=Rajajinagar+Bengaluru" },
     socials: { whatsapp: "+919876543008", facebook: "meerafamilyclinic", googleBusiness: "ChIJ678" },
@@ -228,7 +228,7 @@ export interface Booking {
   patientProblem: string;
   date: string;
   time: string;
-  type: "clinic" | "video" | "home";
+  type: "clinic" | "home";
   status: "upcoming" | "completed" | "cancelled";
   branch?: string;
   fee: number;

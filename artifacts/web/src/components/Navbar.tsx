@@ -24,9 +24,6 @@ export function Navbar() {
           <button onClick={() => navigate("/doctors")} className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Find Doctors
           </button>
-          <button onClick={() => navigate("/doctors?type=video")} className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
-            Video Consult
-          </button>
           <button onClick={() => navigate("/doctors")} className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Specialists
           </button>
@@ -56,7 +53,6 @@ export function Navbar() {
         <div className="md:hidden border-t border-border bg-white px-4 py-4 space-y-3">
           {[
             { label: "Find Doctors", href: "/doctors" },
-            { label: "Video Consult", href: "/doctors?type=video" },
             { label: "Specialists", href: "/doctors" },
             { label: "Admin Panel", href: "/admin" },
           ].map((item) => (

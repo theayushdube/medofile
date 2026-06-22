@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useRoute, useLocation } from "wouter";
-import { ChevronLeft, Calendar, Clock, User, Mail, Phone, FileText, CheckCircle, Building2, Video, Home } from "lucide-react";
-import { DOCTORS, addBooking } from "@/data/doctors";
+import { ChevronLeft, Calendar, Clock, User, Mail, Phone, FileText, CheckCircle, Building2, Home } from "lucide-react";
+import { useDoctor } from "@/hooks/useDoctors";
 import { Navbar } from "@/components/Navbar";
 
 const TIME_SLOTS = ["09:00 AM","09:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","12:00 PM","02:00 PM","02:30 PM","03:00 PM","03:30 PM","04:00 PM","04:30 PM","05:00 PM","05:30 PM","06:00 PM"];
-type ConsultType = "clinic" | "video" | "home";
+type ConsultType = "clinic" | "home";
 const STEPS = ["Date & Time", "Your Details", "Confirm & Pay"];
 
 function getDates() {
@@ -30,7 +30,7 @@ const DATES = getDates();
 export default function Booking() {
   const [, params] = useRoute("/book/:doctorId");
   const [, navigate] = useLocation();
-  const doctor = DOCTORS.find((d) => d.id === params?.doctorId) ?? DOCTORS[0];
+  const { doctor, loading } = useDoctor(params?.doctorId);
 
   const [step, setStep] = useState(1);
   const [consultType, setConsultType] = useState<ConsultType>("clinic");
@@ -44,7 +44,7 @@ export default function Booking() {
   const [confirmed, setConfirmed] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  function handleNext() {
+  async function handleNext() {
     if (step === 1) {
       if (!selectedTime) { alert("Please select a time slot."); return; }
       setStep(2);
@@ -58,22 +58,44 @@ export default function Booking() {
       setErrors({});
       setStep(3);
     } else {
-      addBooking({
-        doctorId: doctor.id,
-        patientName,
-        patientEmail,
-        patientPhone,
-        patientProblem,
-        date: selectedDate,
-        time: selectedTime!,
-        type: consultType,
-        status: "upcoming",
-        branch: consultType === "clinic" ? doctor.branches[selectedBranch]?.name : undefined,
-        fee: doctor.fee,
-      });
+      if (!doctor) return;
+      try {
+        await fetch("/api/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            doctorId: doctor.id,
+            patientName,
+            patientEmail,
+            patientPhone,
+            patientProblem,
+            date: selectedDate,
+            time: selectedTime!,
+            type: consultType,
+            branch: consultType === "clinic" ? doctor.branches[selectedBranch]?.name : "",
+            fee: doctor.fee,
+          }),
+        });
+      } catch {}
       setConfirmed(true);
     }
   }
+
+  if (loading) return (
+    <div className="min-h-screen bg-background"><Navbar />
+      <div className="flex items-center justify-center min-h-[60vh] text-sm text-muted-foreground animate-pulse">Loading...</div>
+    </div>
+  );
+
+  if (!doctor) return (
+    <div className="min-h-screen bg-background"><Navbar />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <div className="text-4xl">🔍</div>
+        <div className="font-semibold text-foreground">Doctor not found</div>
+        <button onClick={() => navigate("/doctors")} className="text-primary text-sm hover:underline">Browse doctors</button>
+      </div>
+    </div>
+  );
 
   if (confirmed) {
     return (
@@ -96,7 +118,7 @@ export default function Booking() {
               { label: "Doctor", value: doctor.name },
               { label: "Date", value: selectedDate },
               { label: "Time", value: selectedTime! },
-              { label: "Type", value: consultType === "clinic" ? "In-Clinic" : consultType === "video" ? "Video Call" : "Home Visit" },
+              { label: "Type", value: consultType === "clinic" ? "In-Clinic" : "Home Visit" },
               { label: "Fee", value: `₹${doctor.fee}` },
             ].map(({ label, value }) => (
               <div key={label} className="flex justify-between text-sm">
@@ -148,18 +170,18 @@ export default function Booking() {
           <div className="space-y-6">
             <div className="bg-white rounded-2xl border border-border p-5">
               <h2 className="font-semibold text-foreground mb-4">Consultation Type</h2>
-              <div className="grid grid-cols-3 gap-3">
-                {(["clinic","video","home"] as ConsultType[]).filter(t => doctor.consultationTypes.includes(t)).map((t) => (
+              <div className="grid grid-cols-2 gap-3">
+                {(["clinic","home"] as ConsultType[]).filter(t => doctor.consultationTypes.includes(t)).map((t) => (
                   <button
                     key={t}
                     onClick={() => setConsultType(t)}
                     className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${consultType === t ? "border-primary bg-secondary" : "border-border hover:border-primary/40"}`}
                   >
-                    {t === "clinic" ? <Building2 className={`w-5 h-5 ${consultType === t ? "text-primary" : "text-muted-foreground"}`} /> :
-                     t === "video" ? <Video className={`w-5 h-5 ${consultType === t ? "text-primary" : "text-muted-foreground"}`} /> :
-                     <Home className={`w-5 h-5 ${consultType === t ? "text-primary" : "text-muted-foreground"}`} />}
+                    {t === "clinic"
+                      ? <Building2 className={`w-5 h-5 ${consultType === t ? "text-primary" : "text-muted-foreground"}`} />
+                      : <Home className={`w-5 h-5 ${consultType === t ? "text-primary" : "text-muted-foreground"}`} />}
                     <span className={`text-xs font-medium ${consultType === t ? "text-primary" : "text-foreground"}`}>
-                      {t === "clinic" ? "In-Clinic" : t === "video" ? "Video Call" : "Home Visit"}
+                      {t === "clinic" ? "In-Clinic" : "Home Visit"}
                     </span>
                   </button>
                 ))}
@@ -274,7 +296,7 @@ export default function Booking() {
                   { label: "Patient", value: patientName },
                   { label: "Date", value: selectedDate },
                   { label: "Time", value: selectedTime! },
-                  { label: "Type", value: consultType === "clinic" ? "In-Clinic" : consultType === "video" ? "Video Call" : "Home Visit" },
+                  { label: "Type", value: consultType === "clinic" ? "In-Clinic" : "Home Visit" },
                   consultType === "clinic" && doctor.branches[selectedBranch] ? { label: "Branch", value: doctor.branches[selectedBranch].name } : null,
                   { label: "Concern", value: patientProblem },
                 ].filter(Boolean).map((row) => (

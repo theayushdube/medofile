@@ -1,23 +1,59 @@
-import { useState, useMemo } from "react";
-import { Search, MapPin, SlidersHorizontal, ChevronDown, X } from "lucide-react";
-import { DOCTORS, SPECIALIZATIONS } from "@/data/doctors";
+import { useState, useMemo, useEffect } from "react";
+import { Search, MapPin, SlidersHorizontal, X, LocateFixed } from "lucide-react";
+import { SPECIALIZATIONS } from "@/data/doctors";
+import { useDoctors } from "@/hooks/useDoctors";
 import { Navbar } from "@/components/Navbar";
 import { DoctorCard } from "@/components/DoctorCard";
 
 const CITIES = ["All Cities", "New Delhi", "Mumbai", "Bengaluru", "Hyderabad", "Kolkata", "Gurugram"];
 const SORT_OPTIONS = ["Relevance", "Rating: High to Low", "Fee: Low to High", "Experience: Most"];
 
+const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  "New Delhi": { lat: 28.6, lng: 77.2 }, "Mumbai": { lat: 19.07, lng: 72.87 },
+  "Bengaluru": { lat: 12.97, lng: 77.59 }, "Hyderabad": { lat: 17.38, lng: 78.48 },
+  "Kolkata": { lat: 22.57, lng: 88.36 }, "Gurugram": { lat: 28.46, lng: 77.03 },
+  "Chennai": { lat: 13.08, lng: 80.27 }, "Pune": { lat: 18.52, lng: 73.86 },
+};
+
+function nearestCity(lat: number, lng: number): string {
+  let best = "All Cities"; let bestDist = Infinity;
+  for (const [name, c] of Object.entries(CITY_COORDS)) {
+    const d = Math.hypot(lat - c.lat, lng - c.lng);
+    if (d < bestDist) { bestDist = d; best = name; }
+  }
+  return bestDist < 3 ? best : "All Cities";
+}
+
 export default function DoctorList() {
+  const { doctors, loading } = useDoctors();
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("All Cities");
   const [selectedSpec, setSelectedSpec] = useState("");
   const [sort, setSort] = useState("Relevance");
   const [genderFilter, setGenderFilter] = useState<"All" | "Male" | "Female">("All");
-  const [consultFilter, setConsultFilter] = useState<"" | "clinic" | "video" | "home">("");
+  const [consultFilter, setConsultFilter] = useState<"" | "clinic" | "home">("");
   const [showFilters, setShowFilters] = useState(false);
+  const [locating, setLocating] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q"); const c = params.get("city");
+    if (q) setSearch(q);
+    if (c && c !== "All Cities") setCity(c);
+  }, []);
+
+  function detectLocation() {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setCity(nearestCity(pos.coords.latitude, pos.coords.longitude)); setLocating(false); },
+      () => setLocating(false),
+      { timeout: 8000 }
+    );
+  }
 
   const filtered = useMemo(() => {
-    let docs = DOCTORS.filter((d) => {
+    let docs = doctors.filter((d) => {
       const q = search.toLowerCase();
       return (
         (!q || d.name.toLowerCase().includes(q) || d.specialization.toLowerCase().includes(q)) &&
@@ -27,13 +63,11 @@ export default function DoctorList() {
         (!consultFilter || d.consultationTypes.includes(consultFilter))
       );
     });
-
     if (sort === "Rating: High to Low") docs = [...docs].sort((a, b) => b.rating - a.rating);
     else if (sort === "Fee: Low to High") docs = [...docs].sort((a, b) => a.fee - b.fee);
     else if (sort === "Experience: Most") docs = [...docs].sort((a, b) => b.experience - a.experience);
-
     return docs;
-  }, [search, city, selectedSpec, sort, genderFilter, consultFilter]);
+  }, [search, city, selectedSpec, sort, genderFilter, consultFilter, doctors]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,6 +88,14 @@ export default function DoctorList() {
               {search && <button onClick={() => setSearch("")}><X className="w-3 h-3 text-muted-foreground" /></button>}
             </div>
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-muted border border-border">
+              <button
+                title="Detect my location"
+                onClick={detectLocation}
+                disabled={locating}
+                className="hover:text-primary transition-colors disabled:opacity-50"
+              >
+                <LocateFixed className={`w-4 h-4 ${locating ? "animate-pulse text-primary" : "text-muted-foreground"}`} />
+              </button>
               <MapPin className="w-4 h-4 text-muted-foreground" />
               <select
                 className="bg-transparent text-sm text-foreground outline-none cursor-pointer"
@@ -96,14 +138,14 @@ export default function DoctorList() {
                 </button>
               ))}
 
-              {/* Consult type */}
-              {["", "clinic", "video", "home"].map((t) => (
+              {/* Consult type — no video */}
+              {(["", "clinic", "home"] as const).map((t) => (
                 <button
                   key={t}
-                  onClick={() => setConsultFilter(t as any)}
+                  onClick={() => setConsultFilter(t)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${consultFilter === t ? "bg-primary text-white border-primary" : "bg-white border-border text-foreground hover:border-primary/50"}`}
                 >
-                  {t === "" ? "All Types" : t === "clinic" ? "In-Clinic" : t === "video" ? "Video" : "Home Visit"}
+                  {t === "" ? "All Types" : t === "clinic" ? "In-Clinic" : "Home Visit"}
                 </button>
               ))}
 
@@ -123,11 +165,17 @@ export default function DoctorList() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold text-foreground">
-            {filtered.length} doctor{filtered.length !== 1 ? "s" : ""} found
+            {loading ? "Loading doctors..." : `${filtered.length} doctor${filtered.length !== 1 ? "s" : ""} found`}
           </h1>
         </div>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-52 rounded-2xl bg-muted animate-pulse" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-24">
             <div className="text-6xl mb-4">🔍</div>
             <div className="text-xl font-semibold text-foreground mb-2">No doctors found</div>
@@ -136,7 +184,7 @@ export default function DoctorList() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((doc) => (
-              <DoctorCard key={doc.id} doctor={doc} />
+              <DoctorCard key={doc.id} doctor={doc as any} />
             ))}
           </div>
         )}
