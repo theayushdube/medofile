@@ -107,7 +107,7 @@ export default function AdminPanel() {
   }, [auth, loadDoctors, loadBookings, loadUsers, isSuperAdmin]);
 
   async function handleDeleteDoctor(id: number) {
-    if (!auth || !isSuperAdmin) return;
+    if (!auth) return;
     if (!confirm("Delete this doctor? This cannot be undone.")) return;
     await fetch(`${API_BASE}/doctors/${id}`, { method: "DELETE", headers: authHeaders(auth.token) });
     await loadDoctors();
@@ -202,9 +202,6 @@ export default function AdminPanel() {
                   className="w-full bg-primary text-white py-3 rounded-xl font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60">
                   {logging ? "Signing in..." : "Sign In"}
                 </button>
-              </div>
-              <div className="mt-6 p-4 bg-muted rounded-xl text-xs text-muted-foreground">
-                <strong>Access levels:</strong> Super Admin (full access) · Admin (doctor profiles only)
               </div>
             </div>
           </div>
@@ -364,11 +361,9 @@ export default function AdminPanel() {
                       <button onClick={() => openEditDoctor(doc)} className="flex items-center gap-1.5 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors">
                         <Edit className="w-3.5 h-3.5" /> Edit
                       </button>
-                      {isSuperAdmin && (
-                        <button onClick={() => handleDeleteDoctor(doc.id)} className="flex items-center gap-1.5 text-xs bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors">
-                          <Trash2 className="w-3.5 h-3.5" /> Delete
-                        </button>
-                      )}
+                      <button onClick={() => handleDeleteDoctor(doc.id)} className="flex items-center gap-1.5 text-xs bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </button>
                     </div>
                   </div>
                 </div>
