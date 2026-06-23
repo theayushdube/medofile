@@ -15,6 +15,25 @@ router.get("/doctors", async (req, res): Promise<void> => {
   }
 });
 
+router.get("/doctors/suggestions", async (req, res): Promise<void> => {
+  try {
+    const { specializations, city } = req.query as { specializations?: string; city?: string };
+    const allDocs = await db.select().from(doctors);
+    let result = allDocs;
+    if (specializations) {
+      const specs = specializations.split(",").map((s) => s.trim().toLowerCase());
+      result = result.filter((d) => specs.some((s) => d.specialization.toLowerCase().includes(s)));
+    }
+    if (city && city.trim()) {
+      result = result.filter((d) => d.city.toLowerCase().includes(city.toLowerCase()));
+    }
+    result = result.sort((a, b) => b.rating - a.rating).slice(0, 4);
+    res.json(result);
+  } catch {
+    res.status(500).json({ error: "Failed to fetch suggestions" });
+  }
+});
+
 router.get("/doctors/:id", async (req, res): Promise<void> => {
   try {
     const [doc] = await db.select().from(doctors).where(eq(doctors.id, parseInt(req.params.id))).limit(1);

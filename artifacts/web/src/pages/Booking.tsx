@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRoute, useLocation } from "wouter";
 import { ChevronLeft, Calendar, Clock, User, Mail, Phone, FileText, CheckCircle, Building2, Home } from "lucide-react";
 import { useDoctor } from "@/hooks/useDoctors";
@@ -101,10 +102,20 @@ export default function Booking() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-lg mx-auto px-4 py-20 text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <motion.div
+          className="max-w-lg mx-auto px-4 py-20 text-center"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+          <motion.div
+            className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
+          >
             <CheckCircle className="w-10 h-10 text-green-500" />
-          </div>
+          </motion.div>
           <h1 className="text-2xl font-bold text-foreground mb-2">Appointment Confirmed!</h1>
           <p className="text-muted-foreground mb-6">
             Your appointment with <strong>{doctor.name}</strong> is confirmed for <strong>{selectedDate}</strong> at <strong>{selectedTime}</strong>.
@@ -130,7 +141,7 @@ export default function Booking() {
           <button onClick={() => navigate("/")} className="w-full bg-primary text-white py-3 rounded-xl font-semibold hover:bg-primary/90 transition-colors">
             Back to Home
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }

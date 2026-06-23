@@ -1,5 +1,6 @@
 import { useState } from "react";
 import React from "react";
+import { motion } from "framer-motion";
 import { useRoute, useLocation } from "wouter";
 import {
   Star, MapPin, Shield, Phone, Calendar, Home, Building2,
@@ -89,7 +90,12 @@ export default function DoctorProfile() {
             <ChevronLeft className="w-4 h-4" /> Back to doctors
           </button>
 
-          <div className="flex flex-col md:flex-row gap-6 items-start">
+          <motion.div
+            className="flex flex-col md:flex-row gap-6 items-start"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             {/* Avatar */}
             <div className="relative shrink-0">
               <img src={doctor.avatar} alt={doctor.name} className="w-28 h-28 md:w-32 md:h-32 rounded-3xl object-cover border-4 border-white/20 shadow-xl" />
@@ -171,7 +177,7 @@ export default function DoctorProfile() {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Search, MapPin, SlidersHorizontal, X, LocateFixed } from "lucide-react";
+import { motion } from "framer-motion";
 import { SPECIALIZATIONS } from "@/data/doctors";
 import { useDoctors } from "@/hooks/useDoctors";
 import { Navbar } from "@/components/Navbar";
@@ -172,21 +173,39 @@ export default function DoctorList() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-52 rounded-2xl bg-muted animate-pulse" />
+              <motion.div
+                key={i}
+                className="h-52 rounded-2xl bg-muted"
+                animate={{ opacity: [0.4, 0.8, 0.4] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
+              />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-24">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="text-center py-24"
+          >
             <div className="text-6xl mb-4">🔍</div>
             <div className="text-xl font-semibold text-foreground mb-2">No doctors found</div>
             <p className="text-muted-foreground">Try adjusting your filters or search terms</p>
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+            initial="hidden"
+            animate="show"
+            variants={{ show: { transition: { staggerChildren: 0.07 } } }}
+          >
             {filtered.map((doc) => (
-              <DoctorCard key={doc.id} doctor={doc as any} />
+              <motion.div
+                key={doc.id}
+                variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+              >
+                <DoctorCard doctor={doc as any} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

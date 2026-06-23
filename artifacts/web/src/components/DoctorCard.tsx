@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
-import { Star, MapPin, Shield, Clock, Home, Building2, Phone } from "lucide-react";
+import { Star, MapPin, Shield, Home, Building2, Phone } from "lucide-react";
+import { motion } from "framer-motion";
 import type { Doctor } from "@/data/doctors";
 
 interface Props {
@@ -11,18 +12,19 @@ export function DoctorCard({ doctor, compact = false }: Props) {
   const [, navigate] = useLocation();
 
   return (
-    <div
-      className="bg-white rounded-2xl border border-border hover:border-primary/40 hover:shadow-md transition-all cursor-pointer group overflow-hidden"
+    <motion.div
+      whileHover={{ y: -4, boxShadow: "0 12px 32px rgba(27,114,232,0.12)" }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white rounded-2xl border border-border hover:border-primary/40 transition-colors cursor-pointer group overflow-hidden"
       onClick={() => navigate(`/doctors/${doctor.id}`)}
     >
-      {/* Premium badge */}
       {doctor.isPremium && (
         <div className="h-1 bg-gradient-to-r from-primary to-[#00C897]" />
       )}
 
       <div className="p-5">
         <div className="flex gap-4">
-          {/* Avatar */}
           <div className="relative shrink-0">
             <img
               src={doctor.avatar}
@@ -36,10 +38,9 @@ export function DoctorCard({ doctor, compact = false }: Props) {
             )}
           </div>
 
-          {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="font-semibold text-foreground text-sm leading-tight">{doctor.name}</h3>
+              <h3 className="font-semibold text-foreground text-sm leading-tight group-hover:text-primary transition-colors">{doctor.name}</h3>
               <div className="flex items-center gap-1 shrink-0">
                 <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
                 <span className="text-xs font-semibold text-foreground">{doctor.rating}</span>
@@ -58,7 +59,6 @@ export function DoctorCard({ doctor, compact = false }: Props) {
 
         {!compact && (
           <>
-            {/* Consultation types */}
             <div className="flex gap-2 mt-3">
               {doctor.consultationTypes.includes("clinic") && (
                 <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-lg">
@@ -72,7 +72,6 @@ export function DoctorCard({ doctor, compact = false }: Props) {
               )}
             </div>
 
-            {/* Footer */}
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
               <div>
                 <div className="text-xs text-muted-foreground">Consultation Fee</div>
@@ -88,7 +87,7 @@ export function DoctorCard({ doctor, compact = false }: Props) {
                 </a>
                 <button
                   onClick={(e) => { e.stopPropagation(); navigate(`/book/${doctor.id}`); }}
-                  className="bg-primary text-white text-xs font-semibold px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors"
+                  className="bg-primary text-white text-xs font-semibold px-4 py-2 rounded-xl hover:bg-primary/90 active:scale-95 transition-all"
                 >
                   Book Now
                 </button>
@@ -97,6 +96,6 @@ export function DoctorCard({ doctor, compact = false }: Props) {
           </>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
