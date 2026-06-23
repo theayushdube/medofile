@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Sparkles } from "lucide-react";
 
 export function Navbar() {
   const [, navigate] = useLocation();
@@ -26,6 +26,13 @@ export function Navbar() {
           </button>
           <button onClick={() => navigate("/doctors")} className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Specialists
+          </button>
+          <button
+            onClick={() => navigate("/healthbot")}
+            className="flex items-center gap-1.5 text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            AI Assistant
           </button>
           <div className="w-px h-4 bg-border" />
           <button
@@ -54,6 +61,7 @@ export function Navbar() {
           {[
             { label: "Find Doctors", href: "/doctors" },
             { label: "Specialists", href: "/doctors" },
+            { label: "AI Health Assistant", href: "/healthbot" },
             { label: "Admin Panel", href: "/admin" },
           ].map((item) => (
             <button

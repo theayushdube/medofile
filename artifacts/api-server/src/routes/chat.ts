@@ -69,7 +69,7 @@ router.post("/chat", async (req, res): Promise<void> => {
 
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       max_tokens: 1000,
       messages: chatMessages as any,
       stream: true,
@@ -104,7 +104,7 @@ router.post("/chat/prescription", async (req, res): Promise<void> => {
 
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       max_tokens: 800,
       stream: true,
       messages: [
