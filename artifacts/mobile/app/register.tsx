@@ -12,13 +12,27 @@ export default function RegisterScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { setUserRole, setPatientProfile } = useApp();
+  const { setUserRole, setPatientProfile, setActiveDoctorId } = useApp();
   const [role, setRole] = useState<UserRole>("patient");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [specialization, setSpecialization] = useState("General Physician");
+  const [city, setCity] = useState("");
+  const [phone, setPhone] = useState("");
 
   async function continueRegistration() {
     if (!name.trim()) return;
+    if (role === "doctor" && (!specialization.trim() || !city.trim() || !phone.trim())) return;
+    if (role === "doctor") {
+      const response = await fetch("/api/doctors/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), specialization: specialization.trim(), city: city.trim(), phone: phone.trim() }),
+      });
+      if (!response.ok) return;
+      const doctor = await response.json();
+      await setActiveDoctorId(String(doctor.id));
+    }
     if (role === "patient") {
       setPatientProfile({
         id: `patient-${Date.now()}`,
@@ -65,6 +79,14 @@ export default function RegisterScreen() {
           <TextInput value={name} onChangeText={setName} placeholder={role === "doctor" ? "Dr. Your Name" : "Your full name"} placeholderTextColor="#7B8FA8" style={styles.input} />
           <Text style={styles.label}>Email (optional)</Text>
           <TextInput value={email} onChangeText={setEmail} placeholder="you@example.com" placeholderTextColor="#7B8FA8" keyboardType="email-address" autoCapitalize="none" style={styles.input} />
+          {role === "doctor" && <>
+            <Text style={styles.label}>Specialization</Text>
+            <TextInput value={specialization} onChangeText={setSpecialization} placeholder="Cardiologist" placeholderTextColor="#7B8FA8" style={styles.input} />
+            <Text style={styles.label}>City</Text>
+            <TextInput value={city} onChangeText={setCity} placeholder="Your city" placeholderTextColor="#7B8FA8" style={styles.input} />
+            <Text style={styles.label}>Phone</Text>
+            <TextInput value={phone} onChangeText={setPhone} placeholder="+91..." placeholderTextColor="#7B8FA8" keyboardType="phone-pad" style={styles.input} />
+          </>}
           <Pressable disabled={!name.trim()} onPress={continueRegistration} style={[styles.button, !name.trim() && styles.buttonDisabled]}>
             <Text style={styles.buttonText}>Continue as {role === "doctor" ? "Doctor" : "General User"}</Text>
             <Ionicons name="arrow-forward" size={18} color="#fff" />

@@ -50,6 +50,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChatError"
+  /doctors/register:
+    post:
+      operationId: registerDoctor
+      tags: [doctors]
+      summary: Register a doctor profile without requiring login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DoctorProfileInput"
+      responses:
+        "201":
+          description: Created doctor profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doctor"
+        "400":
+          description: Required doctor details are missing
+  /doctors/{id}/profile:
+    put:
+      operationId: updateDoctorProfile
+      tags: [doctors]
+      summary: Update a doctor profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DoctorProfileInput"
+      responses:
+        "200":
+          description: Updated doctor profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doctor"
+        "404":
+          description: Doctor not found
 components:
   schemas:
     HealthStatus:
@@ -89,3 +135,32 @@ components:
           type: string
       required:
         - error
+    DoctorProfileInput:
+      type: object
+      properties:
+        name: { type: string }
+        qualification: { type: string }
+        specialization: { type: string }
+        experience: { type: integer }
+        fee: { type: integer }
+        hospital: { type: string }
+        clinicName: { type: string }
+        address: { type: string }
+        city: { type: string }
+        phone: { type: string }
+        about: { type: string }
+        languages: { type: array, items: { type: string } }
+        availability: { type: string }
+        timing: { type: string }
+        registrationNumber: { type: string }
+        treatments: { type: array, items: { type: string } }
+        consultationTypes: { type: array, items: { type: string } }
+        socials: { type: object, additionalProperties: { type: string } }
+      required: [name, specialization, city, phone]
+    Doctor:
+      allOf:
+        - $ref: "#/components/schemas/DoctorProfileInput"
+        - type: object
+          properties:
+            id: { type: integer }
+          required: [id]

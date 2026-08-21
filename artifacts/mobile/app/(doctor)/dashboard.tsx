@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useMemo } from "react";
 import {
+  Alert,
   FlatList,
   Platform,
   Pressable,
@@ -18,6 +19,7 @@ import { StatCard } from "@/components/StatCard";
 import { useApp } from "@/context/AppContext";
 import { DOCTORS, REVIEWS } from "@/data/mockData";
 import { useColors } from "@/hooks/useColors";
+import { useDoctor } from "@/hooks/useDoctors";
 
 const QUICK_ACTIONS = [
   { label: "Add Slot", icon: "add-circle-outline", color: "#1B72E8" },
@@ -35,7 +37,8 @@ export default function DashboardScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const doctor = useMemo(() => DOCTORS.find((d) => d.id === activeDoctorId) ?? DOCTORS[0], [activeDoctorId]);
+  const { doctor: apiDoctor } = useDoctor(activeDoctorId);
+  const doctor = apiDoctor ?? useMemo(() => DOCTORS.find((d) => d.id === activeDoctorId) ?? DOCTORS[0], [activeDoctorId]);
   const upcoming = useMemo(() => appointments.filter((a) => a.status === "upcoming").slice(0, 3), [appointments]);
   const todayCount = upcoming.length;
   const totalPatients = appointments.length;
@@ -272,7 +275,16 @@ export default function DashboardScreen() {
         </View>
         <View style={styles.qaGrid}>
           {QUICK_ACTIONS.map((qa) => (
-            <Pressable key={qa.label} style={styles.qaItem}>
+            <Pressable
+              key={qa.label}
+              style={styles.qaItem}
+              onPress={() => {
+                if (qa.label === "Manage Clinic") router.push("/(doctor)/edit");
+                else if (qa.label === "View Analytics") Alert.alert("Analytics", "Detailed analytics will be available as profile activity grows.");
+                else if (qa.label === "Share Profile") Alert.alert("Share Profile", `Share ${doctor.name}'s Medofile profile from the doctor profile page.`);
+                else router.push("/(doctor)/bookings");
+              }}
+            >
               <Ionicons name={qa.icon as any} size={20} color={qa.color} />
               <Text style={styles.qaLabel}>{qa.label}</Text>
             </Pressable>

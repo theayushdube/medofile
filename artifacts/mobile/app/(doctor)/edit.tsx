@@ -2,7 +2,7 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Platform,
@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { DOCTORS } from "@/data/mockData";
 import { useColors } from "@/hooks/useColors";
+import { doctorsCache, useDoctor } from "@/hooks/useDoctors";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const colors = useColors();
@@ -123,7 +124,8 @@ export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
   const { activeDoctorId, logout } = useApp();
 
-  const doctor = DOCTORS.find((d) => d.id === activeDoctorId) ?? DOCTORS[0];
+  const { doctor: apiDoctor } = useDoctor(activeDoctorId);
+  const doctor = apiDoctor ?? DOCTORS.find((d) => d.id === activeDoctorId) ?? DOCTORS[0];
 
   const [about, setAbout] = useState(doctor.about);
   const [fee, setFee] = useState(String(doctor.fee));
@@ -132,12 +134,35 @@ export default function EditProfileScreen() {
   const [instagram, setInstagram] = useState(doctor.socials.instagram ?? "");
   const [youtube, setYoutube] = useState(doctor.socials.youtube ?? "");
   const [linkedin, setLinkedin] = useState(doctor.socials.linkedin ?? "");
+  useEffect(() => {
+    setAbout(doctor.about);
+    setFee(String(doctor.fee));
+    setTiming(doctor.timing);
+    setWebsite(doctor.socials.website ?? "");
+    setInstagram(doctor.socials.instagram ?? "");
+    setYoutube(doctor.socials.youtube ?? "");
+    setLinkedin(doctor.socials.linkedin ?? "");
+  }, [doctor.id]);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  function handleSave() {
-    Alert.alert("Profile Updated", "Your profile changes have been saved.");
+  async function handleSave() {
+    const response = await fetch(`/api/doctors/${doctor.id}/profile`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        about, fee: Number(fee) || 0, timing,
+        socials: { ...doctor.socials, website, instagram, youtube, linkedin },
+      }),
+    });
+    if (response.ok) {
+      doctorsCache.data = null;
+      doctorsCache.ts = 0;
+      Alert.alert("Profile Updated", "Your profile changes have been saved everywhere.");
+    } else {
+      Alert.alert("Unable to save", "Please check your connection and try again.");
+    }
   }
 
   function handleLogout() {

@@ -12,6 +12,7 @@ const Booking = lazy(() => import("@/pages/Booking"));
 const AdminPanel = lazy(() => import("@/pages/AdminPanel"));
 const HealthBot = lazy(() => import("@/pages/HealthBot"));
 const Register = lazy(() => import("@/pages/Register"));
+const DoctorProfileManager = lazy(() => import("@/pages/DoctorProfileManager"));
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ function Router() {
         <Route path="/admin" component={AdminPanel} />
         <Route path="/healthbot" component={HealthBot} />
         <Route path="/register" component={Register} />
+        <Route path="/doctor-profile/manage/:id" component={DoctorProfileManager} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

@@ -23,6 +23,7 @@ interface AppContextType {
   appointments: Appointment[];
   isLoading: boolean;
   setUserRole: (role: UserRole) => Promise<void>;
+  setActiveDoctorId: (id: string) => Promise<void>;
   setPatientProfile: (profile: PatientProfile) => void;
   toggleSaveDoctor: (doctorId: string) => void;
   isDoctorSaved: (doctorId: string) => boolean;
@@ -39,6 +40,7 @@ const STORAGE_KEYS = {
   PATIENT_PROFILE: "@medofile_patient",
   SAVED_DOCTORS: "@medofile_saved",
   APPOINTMENTS: "@medofile_appointments",
+  ACTIVE_DOCTOR: "@medofile_active_doctor",
 };
 
 const DEFAULT_PATIENT: PatientProfile = {
@@ -58,30 +60,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [appointments, setAppointments] = useState<Appointment[]>(SAMPLE_APPOINTMENTS);
   const [isLoading, setIsLoading] = useState(true);
 
-  const activeDoctorId = "1";
+  const [activeDoctorId, setActiveDoctorIdState] = useState("1");
 
   useEffect(() => {
     async function loadState() {
       try {
-        const [role, patient, saved, apts] = await Promise.all([
+        const [role, patient, saved, apts, doctorId] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.USER_ROLE),
           AsyncStorage.getItem(STORAGE_KEYS.PATIENT_PROFILE),
           AsyncStorage.getItem(STORAGE_KEYS.SAVED_DOCTORS),
           AsyncStorage.getItem(STORAGE_KEYS.APPOINTMENTS),
+          AsyncStorage.getItem(STORAGE_KEYS.ACTIVE_DOCTOR),
         ]);
 
-        setUserRoleState(role === "doctor" || role === "patient" ? role : null);
+        setUserRoleState(role === "doctor" || role === "patient" ? role : "patient");
         if (patient) setPatientProfileState(JSON.parse(patient));
         else setPatientProfileState(DEFAULT_PATIENT);
         if (saved) setSavedDoctors(JSON.parse(saved));
         if (apts) setAppointments(JSON.parse(apts));
+        if (doctorId) setActiveDoctorIdState(doctorId);
       } catch {
+        setUserRoleState("patient");
         setPatientProfileState(DEFAULT_PATIENT);
       } finally {
         setIsLoading(false);
       }
     }
     loadState();
+  }, []);
+
+  const setActiveDoctorId = useCallback(async (id: string) => {
+    setActiveDoctorIdState(id);
+    await AsyncStorage.setItem(STORAGE_KEYS.ACTIVE_DOCTOR, id);
   }, []);
 
   const setUserRole = useCallback(async (role: UserRole) => {
@@ -160,6 +170,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         appointments,
         isLoading,
         setUserRole,
+    setActiveDoctorId,
         setPatientProfile,
         toggleSaveDoctor,
         isDoctorSaved,

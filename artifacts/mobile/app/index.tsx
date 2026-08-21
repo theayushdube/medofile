@@ -28,7 +28,7 @@ export default function SplashScreen() {
         } else if (userRole === "patient") {
           router.replace("/(patient)/home");
         } else {
-          router.replace("/register");
+          router.replace("/(patient)/home");
         }
       }, 1500);
       return () => clearTimeout(timer);

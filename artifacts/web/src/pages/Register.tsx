@@ -12,8 +12,12 @@ export default function Register() {
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
+    if (role === "doctor") {
+      navigate(`/doctor-profile/manage/new?name=${encodeURIComponent(name.trim())}&email=${encodeURIComponent(email.trim())}`);
+      return;
+    }
     localStorage.setItem("medofile_registration", JSON.stringify({ role, name: name.trim(), email: email.trim() }));
-    navigate(role === "doctor" ? "/admin" : "/doctors");
+    navigate("/doctors");
   }
 
   return (

@@ -34,6 +34,52 @@ router.get("/doctors/suggestions", async (req, res): Promise<void> => {
   }
 });
 
+router.post("/doctors/register", async (req, res): Promise<void> => {
+  try {
+    const data = req.body ?? {};
+    if (!data.name || !data.specialization || !data.city || !data.phone) {
+      res.status(400).json({ error: "name, specialization, city, and phone are required" });
+      return;
+    }
+    const [created] = await db.insert(doctors).values({
+      name: data.name,
+      qualification: data.qualification || "",
+      specialization: data.specialization,
+      experience: Number(data.experience) || 0,
+      rating: 0,
+      reviewCount: 0,
+      fee: Number(data.fee) || 500,
+      hospital: data.hospital || "",
+      clinicName: data.clinicName || "",
+      address: data.address || "",
+      city: data.city,
+      phone: data.phone,
+      about: data.about || "",
+      languages: Array.isArray(data.languages) ? data.languages : [],
+      availability: data.availability || "",
+      timing: data.timing || "",
+      isVerified: false,
+      isPremium: false,
+      emergencyAvailable: Boolean(data.emergencyAvailable),
+      gender: data.gender || "Male",
+      consultationTypes: Array.isArray(data.consultationTypes) ? data.consultationTypes : ["clinic"],
+      registrationNumber: data.registrationNumber || "",
+      avatar: data.avatar || `https://i.pravatar.cc/200?img=${Math.floor(Math.random() * 70)}`,
+      location: data.location || { lat: 0, lng: 0, mapsUrl: "" },
+      socials: data.socials || {},
+      analytics: { impressions: 0, profileViews: 0, callClicks: 0, chatClicks: 0, bookings: 0, directionsClicks: 0, weeklyTrend: [0,0,0,0,0,0,0] },
+      treatments: Array.isArray(data.treatments) ? data.treatments : [],
+      education: Array.isArray(data.education) ? data.education : [],
+      memberships: Array.isArray(data.memberships) ? data.memberships : [],
+      insurances: Array.isArray(data.insurances) ? data.insurances : [],
+      branches: Array.isArray(data.branches) ? data.branches : [],
+    }).returning();
+    res.status(201).json(created);
+  } catch {
+    res.status(500).json({ error: "Failed to register doctor" });
+  }
+});
+
 router.get("/doctors/:id", async (req, res): Promise<void> => {
   try {
     const [doc] = await db.select().from(doctors).where(eq(doctors.id, parseInt(req.params.id))).limit(1);
@@ -95,6 +141,26 @@ router.put("/doctors/:id", requireAuth, async (req, res): Promise<void> => {
     res.json(updated);
   } catch {
     res.status(500).json({ error: "Failed to update doctor" });
+  }
+});
+
+router.put("/doctors/:id/profile", async (req, res): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+    const data = req.body ?? {};
+    const allowed = [
+      "name", "qualification", "specialization", "experience", "fee", "hospital",
+      "clinicName", "address", "city", "phone", "about", "languages", "availability",
+      "timing", "gender", "consultationTypes", "registrationNumber", "avatar",
+      "location", "socials", "treatments", "education", "memberships", "insurances",
+      "branches", "emergencyAvailable",
+    ];
+    const updates = Object.fromEntries(Object.entries(data).filter(([key]) => allowed.includes(key)));
+    const [updated] = await db.update(doctors).set({ ...updates, updatedAt: new Date() }).where(eq(doctors.id, id)).returning();
+    if (!updated) { res.status(404).json({ error: "Doctor not found" }); return; }
+    res.json(updated);
+  } catch {
+    res.status(500).json({ error: "Failed to update doctor profile" });
   }
 });
 
