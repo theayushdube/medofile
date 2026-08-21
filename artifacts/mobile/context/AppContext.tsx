@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 
-import { DOCTORS, SAMPLE_APPOINTMENTS, type Appointment, type Doctor } from "@/data/mockData";
+import { DOCTORS, type Appointment, type Doctor } from "@/data/mockData";
 
 export type UserRole = "patient" | "doctor" | null;
 
@@ -43,24 +43,14 @@ const STORAGE_KEYS = {
   ACTIVE_DOCTOR: "@medofile_active_doctor",
 };
 
-const DEFAULT_PATIENT: PatientProfile = {
-  id: "p1",
-  name: "Arjun Mehta",
-  age: 32,
-  gender: "Male",
-  phone: "+91 98765 43210",
-  email: "arjun.mehta@gmail.com",
-  bloodGroup: "O+",
-};
-
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRoleState] = useState<UserRole>(null);
   const [patientProfile, setPatientProfileState] = useState<PatientProfile | null>(null);
   const [savedDoctors, setSavedDoctors] = useState<string[]>([]);
-  const [appointments, setAppointments] = useState<Appointment[]>(SAMPLE_APPOINTMENTS);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [activeDoctorId, setActiveDoctorIdState] = useState("1");
+  const [activeDoctorId, setActiveDoctorIdState] = useState("");
 
   useEffect(() => {
     async function loadState() {
@@ -73,15 +63,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem(STORAGE_KEYS.ACTIVE_DOCTOR),
         ]);
 
-        setUserRoleState(role === "doctor" || role === "patient" ? role : "patient");
-        if (patient) setPatientProfileState(JSON.parse(patient));
-        else setPatientProfileState(DEFAULT_PATIENT);
+        const parsedPatient = patient ? JSON.parse(patient) as PatientProfile : null;
+        const isLegacyDemoProfile = parsedPatient?.id === "p1" && parsedPatient.name === "Arjun Mehta";
+        if (isLegacyDemoProfile) {
+          await AsyncStorage.removeItem(STORAGE_KEYS.PATIENT_PROFILE);
+        }
+        setPatientProfileState(isLegacyDemoProfile ? null : parsedPatient);
+        setUserRoleState(
+          role === "doctor"
+            ? "doctor"
+            : role === "patient" && parsedPatient && !isLegacyDemoProfile
+              ? "patient"
+              : null
+        );
         if (saved) setSavedDoctors(JSON.parse(saved));
         if (apts) setAppointments(JSON.parse(apts));
         if (doctorId) setActiveDoctorIdState(doctorId);
       } catch {
-        setUserRoleState("patient");
-        setPatientProfileState(DEFAULT_PATIENT);
+    setUserRoleState(null);
+    setPatientProfileState(null);
+    setAppointments([]);
       } finally {
         setIsLoading(false);
       }
@@ -98,7 +99,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setUserRoleState(role);
     if (role) {
       await AsyncStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
-    }
+    } else await AsyncStorage.removeItem(STORAGE_KEYS.USER_ROLE);
   }, []);
 
   const setPatientProfile = useCallback((profile: PatientProfile) => {
@@ -152,12 +153,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     await AsyncStorage.multiRemove([
       STORAGE_KEYS.USER_ROLE,
+      STORAGE_KEYS.PATIENT_PROFILE,
       STORAGE_KEYS.SAVED_DOCTORS,
       STORAGE_KEYS.APPOINTMENTS,
+      STORAGE_KEYS.ACTIVE_DOCTOR,
     ]);
     setUserRoleState(null);
+    setPatientProfileState(null);
     setSavedDoctors([]);
-    setAppointments(SAMPLE_APPOINTMENTS);
+    setAppointments([]);
+    setActiveDoctorIdState("");
   }, []);
 
   return (

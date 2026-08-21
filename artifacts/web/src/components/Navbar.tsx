@@ -32,13 +32,6 @@ export function Navbar() {
             <Sparkles className="w-3.5 h-3.5" />
             AI Assistant
           </button>
-          <div className="w-px h-4 bg-border" />
-          <button
-            onClick={() => navigate("/admin")}
-            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-          >
-            Admin
-          </button>
           <button
             onClick={() => navigate("/register")}
             className="text-primary text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary/10 transition-colors"
@@ -66,7 +59,6 @@ export function Navbar() {
             { label: "Find Doctors", href: "/doctors" },
             { label: "Specialists", href: "/doctors" },
             { label: "AI Health Assistant", href: "/healthbot" },
-            { label: "Admin Panel", href: "/admin" },
           ].map((item) => (
             <button
               key={item.label}

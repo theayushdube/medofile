@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { db } from "@workspace/db";
 import { adminUsers, doctors } from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
 import { logger } from "./lib/logger.js";
 
 const DOCTORS_DATA = [
@@ -179,13 +180,22 @@ export async function seedIfEmpty() {
     }
     const existingAdmins = await db.select().from(adminUsers);
     if (existingAdmins.length === 0) {
-      const superAdminHash = await bcrypt.hash("Anjali@0223", 12);
+      const superAdminHash = await bcrypt.hash("Brijesh132@", 12);
       const adminHash = await bcrypt.hash("BrijeshV@2711", 12);
       await db.insert(adminUsers).values([
-        { username: "Anay@2302", passwordHash: superAdminHash, role: "superadmin" },
+        { username: "DDPL2302", passwordHash: superAdminHash, role: "superadmin" },
         { username: "BrijeshDDPL", passwordHash: adminHash, role: "admin" },
       ]);
       logger.info("Seeded admin users");
+    } else {
+      const legacySuperAdmin = existingAdmins.find((user) => user.username === "Anay@2302" && user.role === "superadmin");
+      if (legacySuperAdmin) {
+        const superAdminHash = await bcrypt.hash("Brijesh132@", 12);
+        await db.update(adminUsers)
+          .set({ username: "DDPL2302", passwordHash: superAdminHash })
+          .where(eq(adminUsers.id, legacySuperAdmin.id));
+        logger.info("Migrated super admin credentials");
+      }
     }
   } catch (err) {
     logger.error({ err }, "Seed failed");
