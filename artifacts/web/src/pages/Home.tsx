@@ -199,7 +199,9 @@ export default function Home() {
             </div>
             <button
               className="bg-[#0D1B2A] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-primary active:scale-95 transition-all shrink-0 inline-flex items-center justify-center gap-2"
-              onClick={() => navigate(`/doctors?q=${encodeURIComponent(search)}&city=${encodeURIComponent(city)}`)}
+              onClick={() => heroMode === "doctor"
+                ? navigate("/register")
+                : navigate(`/doctors?q=${encodeURIComponent(search)}&city=${encodeURIComponent(city)}`)}
             >
               {heroContent.action} <ArrowRight className="w-4 h-4" />
             </button>
@@ -242,71 +244,82 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.5 }}
           whileHover={{ scale: 1.01 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-[#00C897] text-white p-6 mb-10 cursor-pointer"
+          className="relative overflow-hidden rounded-[1.7rem] bg-[#0D1B2A] text-white p-6 md:p-7 mb-14 cursor-pointer shadow-xl shadow-blue-950/10"
           onClick={() => navigate("/healthbot")}
         >
-          <div className="absolute right-0 top-0 bottom-0 w-40 opacity-10 pointer-events-none">
-            <div className="w-full h-full bg-white rounded-full transform translate-x-1/2 -translate-y-1/4" />
-          </div>
-          <div className="flex items-center gap-4">
+          <div className="absolute -right-16 -top-20 w-80 h-80 rounded-full bg-[#00C897]/20 blur-2xl pointer-events-none" />
+          <div className="absolute right-20 bottom-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent" />
+          <div className="relative flex items-center gap-4">
             <motion.div
-              className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0"
+              className="w-14 h-14 rounded-2xl bg-[#00C897] text-[#062C2A] flex items-center justify-center shrink-0 shadow-lg shadow-[#00C897]/20"
               animate={{ rotate: [0, 8, -8, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Sparkles className="w-7 h-7 text-white" />
+              <Sparkles className="w-7 h-7" />
             </motion.div>
             <div className="flex-1">
-              <div className="font-bold text-lg">AI Health Assistant</div>
-              <div className="text-white/80 text-sm mt-0.5">Describe your symptoms and get instant doctor suggestions powered by AI</div>
+              <div className="text-xs uppercase tracking-[.18em] font-semibold text-[#8FE8D2] mb-1">Medofile AI</div>
+              <div className="font-semibold text-xl">Start with what you’re feeling.</div>
+              <div className="text-white/65 text-sm mt-1">Describe symptoms in plain language and get a safer, clearer next step with relevant doctor suggestions.</div>
             </div>
-            <div className="hidden md:flex items-center gap-2 bg-white/20 hover:bg-white/30 transition-colors rounded-xl px-4 py-2.5 font-medium text-sm">
-              Try Now <ArrowRight className="w-4 h-4" />
+            <div className="hidden md:flex items-center gap-2 bg-white text-[#0D1B2A] hover:bg-[#DFFBF4] transition-colors rounded-xl px-4 py-2.5 font-semibold text-sm">
+              Ask Medofile AI <ArrowRight className="w-4 h-4" />
             </div>
           </div>
         </motion.div>
 
         {/* Browse by Specialty */}
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-          <motion.h2 variants={fadeUp} className="text-2xl font-bold text-foreground mb-5">Browse by Specialty</motion.h2>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 mb-10">
+          <motion.div variants={fadeUp} className="flex items-end justify-between gap-4 mb-5">
+            <div>
+              <div className="text-xs font-semibold text-primary uppercase tracking-[.16em] mb-2">Explore care</div>
+              <h2 className="text-3xl font-semibold tracking-tight text-foreground">Find the right kind of care.</h2>
+            </div>
+            <button onClick={() => navigate("/doctors")} className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-[#0A3D8F]">
+              Browse all doctors <ArrowRight className="w-4 h-4" />
+            </button>
+          </motion.div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 mb-14">
             <motion.button
               variants={fadeUp}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
               onClick={() => setSelectedSpec("")}
-              className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
-                !selectedSpec ? "border-primary bg-secondary text-primary" : "border-border bg-white text-foreground hover:border-primary/40"
+              className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all shadow-sm ${
+                !selectedSpec ? "border-primary bg-primary text-white shadow-lg shadow-primary/20" : "border-border bg-white text-foreground hover:border-primary/40 hover:shadow-md"
               }`}
             >
-              <span className="text-2xl">🔭</span>
+              <span className={`w-10 h-10 rounded-xl flex items-center justify-center ${!selectedSpec ? "bg-white/15" : "bg-secondary text-primary"}`}><Activity className="w-5 h-5" /></span>
               <span className="text-xs font-medium text-center leading-tight">All</span>
             </motion.button>
-            {SPECIALIZATIONS.map((sp) => (
+            {SPECIALIZATIONS.map((sp, index) => {
+              const Icon = specialtyIcons[index % specialtyIcons.length];
+              return (
               <motion.button
                 key={sp.id}
                 variants={fadeUp}
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
                 onClick={() => setSelectedSpec(selectedSpec === sp.name ? "" : sp.name)}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
-                  selectedSpec === sp.name ? "border-primary bg-secondary text-primary" : "border-border bg-white text-foreground hover:border-primary/40"
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all shadow-sm ${
+                  selectedSpec === sp.name ? "border-primary bg-primary text-white shadow-lg shadow-primary/20" : "border-border bg-white text-foreground hover:border-primary/40 hover:shadow-md"
                 }`}
               >
-                <span className="text-2xl">{sp.emoji}</span>
+                <span className={`w-10 h-10 rounded-xl flex items-center justify-center ${selectedSpec === sp.name ? "bg-white/15" : "bg-secondary text-primary"}`}><Icon className="w-5 h-5" /></span>
                 <span className="text-xs font-medium text-center leading-tight">{sp.name}</span>
               </motion.button>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
 
         {/* Quick Actions */}
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-14"
           initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}
         >
           {[
-            { label: "Home Visit", desc: "Doctor at your door", icon: "🏠", color: "bg-orange-50 border-orange-200 text-orange-700", href: "/doctors" },
-            { label: "Emergency Care", desc: "Urgent consultation now", icon: "🚨", color: "bg-red-50 border-red-200 text-red-700", href: "/doctors" },
-            { label: "Lab Tests", desc: "Book at-home tests", icon: "🔬", color: "bg-green-50 border-green-200 text-green-700", href: "/doctors" },
+            { label: "Home Visit", desc: "Care that comes to you", icon: HomeIcon, color: "bg-orange-50 border-orange-100 text-orange-700", href: "/doctors" },
+            { label: "Urgent Care", desc: "Find help when it matters", icon: Siren, color: "bg-red-50 border-red-100 text-red-700", href: "/doctors" },
+            { label: "Lab Tests", desc: "Book tests from home", icon: FlaskConical, color: "bg-emerald-50 border-emerald-100 text-emerald-700", href: "/doctors" },
           ].map((qa) => (
             <motion.div
               key={qa.label}
@@ -314,13 +327,14 @@ export default function Home() {
               whileHover={{ y: -3 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate(qa.href)}
-              className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer hover:shadow-md transition-all ${qa.color}`}
+              className={`group flex items-center gap-4 p-5 rounded-2xl border cursor-pointer hover:shadow-lg transition-all ${qa.color}`}
             >
-              <span className="text-3xl">{qa.icon}</span>
-              <div>
-                <div className="font-semibold text-sm">{qa.label}</div>
+              <span className="w-12 h-12 rounded-2xl bg-white/70 flex items-center justify-center shadow-sm"><qa.icon className="w-6 h-6" /></span>
+              <div className="flex-1">
+                <div className="font-semibold">{qa.label}</div>
                 <div className="text-xs opacity-70 mt-0.5">{qa.desc}</div>
               </div>
+              <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
             </motion.div>
           ))}
         </motion.div>
@@ -340,7 +354,7 @@ export default function Home() {
 
           {filtered.length === 0 && showFiltered ? (
             <div className="text-center py-20">
-              <div className="text-5xl mb-4">🔍</div>
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-secondary text-primary flex items-center justify-center"><Search className="w-6 h-6" /></div>
               <div className="text-lg font-medium text-foreground">No doctors found</div>
               <div className="text-muted-foreground text-sm mt-1">Try a different search or remove filters</div>
             </div>
@@ -357,6 +371,66 @@ export default function Home() {
             </motion.div>
           )}
         </motion.div>
+
+        <motion.section
+          className="grid lg:grid-cols-[.9fr_1.1fr] gap-6 mt-20 mb-4"
+          initial="hidden" whileInView="show" viewport={{ once: true, amount: .2 }} variants={stagger}
+        >
+          <motion.div variants={fadeUp} className="rounded-[1.75rem] bg-white border border-border p-7 md:p-8 shadow-sm">
+            <div className="w-11 h-11 rounded-2xl bg-secondary text-primary flex items-center justify-center mb-6"><HeartPulse className="w-5 h-5" /></div>
+            <div className="text-xs uppercase tracking-[.16em] font-semibold text-primary mb-3">Care that continues</div>
+            <h2 className="text-3xl font-semibold tracking-tight text-foreground leading-tight">A clearer path from “something’s wrong” to “I’m looked after.”</h2>
+            <p className="mt-4 text-muted-foreground leading-relaxed">Medofile brings discovery, guidance, and booking into one simple care experience — without making healthcare feel complicated.</p>
+            <button onClick={() => navigate("/healthbot")} className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:gap-3 transition-all">
+              Start with the AI assistant <ArrowRight className="w-4 h-4" />
+            </button>
+          </motion.div>
+          <motion.div variants={fadeUp} className="rounded-[1.75rem] bg-[#EDF5FF] border border-[#D7E8FF] p-6 md:p-8 grid sm:grid-cols-3 gap-4">
+            {[
+              { number: "01", title: "Tell us what you need", text: "Search by doctor, specialty, city, or symptoms.", icon: MousePointer2 },
+              { number: "02", title: "Choose with confidence", text: "Compare verified doctors, care types, and fees.", icon: BadgeCheck },
+              { number: "03", title: "Book the next step", text: "Set up your appointment with fewer hurdles.", icon: CalendarDays },
+            ].map(({ number, title, text, icon: Icon }) => (
+              <div key={number} className="rounded-2xl bg-white/80 p-5 border border-white shadow-sm">
+                <div className="flex justify-between items-start mb-8"><Icon className="w-5 h-5 text-primary" /><span className="text-xs font-bold text-primary/40">{number}</span></div>
+                <h3 className="font-semibold text-foreground leading-snug">{title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{text}</p>
+              </div>
+            ))}
+          </motion.div>
+        </motion.section>
+
+        <motion.section
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: .2 }} transition={{ duration: .55 }}
+          className="relative overflow-hidden rounded-[1.9rem] bg-gradient-to-br from-[#0B2B5B] via-[#0A3D8F] to-[#116B9C] mt-14 p-7 md:p-10 text-white"
+        >
+          <div className="absolute -right-10 -bottom-24 w-96 h-96 rounded-full border-[28px] border-[#00C897]/15" />
+          <div className="relative grid md:grid-cols-[1.1fr_.9fr] gap-8 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[.17em] text-[#8FE8D2] font-semibold"><UsersRound className="w-4 h-4" /> For doctors</div>
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mt-4 leading-tight">Your care reaches further when patients can find it.</h2>
+              <p className="text-white/65 mt-4 leading-relaxed max-w-xl">Create a trusted public profile, make your availability easier to discover, and build a practice patients choose with confidence.</p>
+              <button onClick={() => navigate("/register")} className="mt-6 bg-[#00C897] text-[#062C2A] px-5 py-3 rounded-xl text-sm font-bold inline-flex items-center gap-2 hover:bg-[#70EBD0] transition-colors">
+                Create doctor profile <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { icon: BadgeCheck, title: "Build trust", text: "A verified profile patients can understand." },
+                { icon: Activity, title: "See demand", text: "Know how patients discover your practice." },
+                { icon: CalendarDays, title: "Simplify booking", text: "Turn interest into confirmed appointments." },
+                { icon: HeartPulse, title: "Grow responsibly", text: "More visibility, without losing the human side." },
+              ].map(({ icon: Icon, title, text }) => (
+                <div key={title} className="rounded-2xl p-4 bg-white/[.09] border border-white/10 backdrop-blur-sm">
+                  <Icon className="w-5 h-5 text-[#8FE8D2] mb-4" />
+                  <div className="font-semibold text-sm">{title}</div>
+                  <div className="text-xs text-white/55 mt-1 leading-relaxed">{text}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
       </div>
 
       {/* Footer */}
@@ -365,14 +439,14 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-sm">M</div>
+                <img src="/brand-mark.svg" alt="" className="w-8 h-8 rounded-lg" />
                 <span className="text-xl font-bold">Medofile</span>
               </div>
               <p className="text-white/60 text-sm leading-relaxed">Your complete healthcare platform — connecting patients with the best doctors across India.</p>
             </div>
             {[
               { title: "For Patients", links: [{ label: "Find Doctors", href: "/doctors" }, { label: "AI Assistant", href: "/healthbot" }, { label: "Home Visit", href: "/doctors" }, { label: "Book Appointment", href: "/doctors" }] },
-              { title: "For Doctors", links: [{ label: "Join Medofile", href: "#" }, { label: "Admin Login", href: "/admin" }, { label: "Analytics", href: "/admin" }, { label: "Grow Practice", href: "#" }] },
+              { title: "For Doctors", links: [{ label: "Join Medofile", href: "/register" }, { label: "Grow Practice", href: "/register" }, { label: "Create a Profile", href: "/register" }] },
               { title: "Company", links: [{ label: "About Us", href: "#" }, { label: "Blog", href: "#" }, { label: "Careers", href: "#" }, { label: "Contact", href: "#" }] },
             ].map((col) => (
               <div key={col.title}>

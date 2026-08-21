@@ -154,6 +154,37 @@ html { scroll-behavior: smooth; }
   background-clip: text;
 }
 
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black, transparent 88%);
+}
+
+.hero-orbit {
+  background-image:
+    linear-gradient(135deg, rgba(255,255,255,.08), transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(27,114,232,.12), transparent 55%);
+}
+
+.glass-float {
+  padding: .75rem .9rem;
+  border-radius: 1rem;
+  background: rgba(6, 29, 65, .48);
+  border: 1px solid rgba(255,255,255,.15);
+  box-shadow: 0 16px 38px rgba(0,0,0,.22);
+  backdrop-filter: blur(14px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @layer utilities {
   input[type="search"]::-webkit-search-cancel-button { @apply hidden; }
 
