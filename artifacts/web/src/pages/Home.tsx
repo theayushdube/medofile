@@ -1,6 +1,10 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { Search, ChevronDown, Sparkles, ArrowRight, CheckCircle, LocateFixed } from "lucide-react";
+import {
+  Search, ChevronDown, Sparkles, ArrowRight, CheckCircle, LocateFixed, Activity,
+  BadgeCheck, CalendarDays, HeartPulse, Home as HomeIcon, FlaskConical, Siren,
+  ShieldCheck, Stethoscope, UsersRound, Brain, Baby, Bone, Eye, MousePointer2,
+} from "lucide-react";
 import { motion, type Variants } from "framer-motion";
 import { SPECIALIZATIONS } from "@/data/doctors";
 import { useDoctors } from "@/hooks/useDoctors";
@@ -40,6 +44,8 @@ export default function Home() {
   const [city, setCity] = useState("All Cities");
   const [selectedSpec, setSelectedSpec] = useState("");
   const [locating, setLocating] = useState(false);
+  const [heroMode, setHeroMode] = useState<"patient" | "doctor">("patient");
+  const [heroTilt, setHeroTilt] = useState({ x: 0, y: 0 });
   const { doctors } = useDoctors();
 
   function detectLocation() {
@@ -63,60 +69,118 @@ export default function Home() {
   }, [search, city, selectedSpec, doctors]);
 
   const showFiltered = !!(search || selectedSpec || city !== "All Cities");
+  const specialtyIcons = [HeartPulse, Brain, Baby, Bone, Eye, Stethoscope];
+  const heroContent = heroMode === "patient"
+    ? {
+        eyebrow: "India's connected care network",
+        title: "Care that feels closer.",
+        description: "Find trusted doctors, understand your symptoms with AI, and book care that fits your life — all in one calm, connected place.",
+        action: "Find my doctor",
+      }
+    : {
+        eyebrow: "Built for doctors who care",
+        title: "Grow a practice people trust.",
+        description: "Turn your expertise into a stronger digital presence with verified profiles, qualified patient leads, and a booking experience that works around you.",
+        action: "Join Medofile",
+      };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0A3D8F] via-[#1B72E8] to-[#3B8FEF] text-white">
-        <div className="absolute inset-0 pointer-events-none">
+      <section className="relative overflow-hidden bg-[#071A3A] text-white">
+        <div className="absolute inset-0 pointer-events-none hero-grid" />
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div
-            className="absolute top-10 left-10 w-72 h-72 rounded-full bg-white/10 blur-3xl"
+            className="absolute -top-32 -left-20 w-[30rem] h-[30rem] rounded-full bg-primary/30 blur-3xl"
             animate={{ scale: [1, 1.15, 1], opacity: [0.08, 0.14, 0.08] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div
-            className="absolute bottom-10 right-10 w-56 h-56 rounded-full bg-[#00C897]/20 blur-3xl"
+            className="absolute -bottom-48 right-0 w-[34rem] h-[34rem] rounded-full bg-[#00C897]/20 blur-3xl"
             animate={{ scale: [1, 1.2, 1], opacity: [0.12, 0.2, 0.12] }}
             transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           />
         </div>
-        <div className="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
-          <motion.div className="max-w-2xl" variants={stagger} initial="hidden" animate="show">
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 mb-5 text-sm font-medium">
-              <span className="w-2 h-2 rounded-full bg-[#00C897] animate-pulse" />
-              Trusted by 50,000+ patients across India
+        <div className="relative max-w-7xl mx-auto px-4 py-14 md:py-20">
+          <div className="grid lg:grid-cols-[1.02fr_.98fr] gap-10 lg:gap-6 items-center">
+            <motion.div className="max-w-2xl" variants={stagger} initial="hidden" animate="show">
+              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#8FE8D2] font-semibold mb-6">
+                <span className="w-2 h-2 rounded-full bg-[#00C897] shadow-[0_0_0_5px_rgba(0,200,151,.12)]" />
+                {heroContent.eyebrow}
+              </motion.div>
+              <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-semibold leading-[.98] tracking-[-0.055em] mb-6 max-w-xl">
+                {heroContent.title}
+              </motion.h1>
+              <motion.p variants={fadeUp} className="text-white/65 text-base md:text-lg max-w-xl mb-7 leading-relaxed">
+                {heroContent.description}
+              </motion.p>
+              <motion.div variants={fadeUp} className="inline-flex p-1 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 mb-7">
+                <button onClick={() => setHeroMode("patient")} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${heroMode === "patient" ? "bg-white text-[#09214A] shadow-lg" : "text-white/65 hover:text-white"}`}>
+                  I need care
+                </button>
+                <button onClick={() => setHeroMode("doctor")} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${heroMode === "doctor" ? "bg-[#00C897] text-[#042B2A] shadow-lg" : "text-white/65 hover:text-white"}`}>
+                  I am a doctor
+                </button>
+              </motion.div>
+              <motion.div variants={fadeUp} className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/60">
+                {[
+                  { icon: BadgeCheck, label: "Verified specialists" },
+                  { icon: CalendarDays, label: "Simple booking" },
+                  { icon: ShieldCheck, label: "Care you can trust" },
+                ].map(({ icon: Icon, label }) => (
+                  <span key={label} className="inline-flex items-center gap-2">
+                    <Icon className="w-4 h-4 text-[#00C897]" /> {label}
+                  </span>
+                ))}
+              </motion.div>
             </motion.div>
-            <motion.h1 variants={fadeUp} className="text-4xl md:text-5xl font-bold leading-tight mb-4">
-              Find the Right Doctor,<br />
-              <span className="text-[#A8D4FF]">Book Instantly</span>
-            </motion.h1>
-            <motion.p variants={fadeUp} className="text-white/80 text-lg mb-8 leading-relaxed">
-              Search from 1,000+ verified specialists across India. Book appointments, get home visits — all in one place.
-            </motion.p>
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-3 mb-8">
-              {["Verified Doctors", "Instant Booking", "Free Cancellation", "AI Health Assistant"].map((b) => (
-                <span key={b} className="inline-flex items-center gap-1.5 bg-white/15 rounded-full px-3 py-1 text-sm">
-                  <CheckCircle className="w-3.5 h-3.5 text-[#00C897]" />
-                  {b}
-                </span>
-              ))}
+
+            <motion.div
+              className="relative min-h-[390px] lg:min-h-[480px] hidden sm:block"
+              initial={{ opacity: 0, scale: .94, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: .8, delay: .15, ease: "easeOut" }}
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setHeroTilt({ x: ((e.clientY - rect.top) / rect.height - .5) * -7, y: ((e.clientX - rect.left) / rect.width - .5) * 7 });
+              }}
+              onMouseLeave={() => setHeroTilt({ x: 0, y: 0 })}
+            >
+              <div className="absolute inset-4 md:inset-8 rounded-[2.5rem] bg-gradient-to-br from-white/[.16] to-white/[.03] border border-white/15 shadow-2xl backdrop-blur-[2px] overflow-hidden hero-orbit">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(0,200,151,.28),transparent_34%)]" />
+                <div className="absolute top-10 left-10 right-10 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                <motion.div className="absolute inset-[15%] rounded-full border border-white/15" animate={{ rotate: 360 }} transition={{ duration: 28, repeat: Infinity, ease: "linear" }} />
+                <motion.div className="absolute inset-[28%] rounded-full border border-[#00C897]/25" animate={{ rotate: -360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} />
+                <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: 900 }}>
+                  <motion.div animate={{ rotateX: heroTilt.x, rotateY: heroTilt.y }} transition={{ type: "spring", stiffness: 120, damping: 16 }} className="relative w-40 h-40 rounded-[2.5rem] bg-gradient-to-br from-[#1B72E8] to-[#00C897] shadow-[0_24px_80px_rgba(0,200,151,.28)] flex items-center justify-center border border-white/30" style={{ transformStyle: "preserve-3d" }}>
+                    <div className="absolute -inset-3 rounded-[2.8rem] border border-white/15" />
+                    <img src="/brand-mark.svg" alt="" className="w-24 h-24 rounded-[1.5rem] shadow-xl" />
+                  </motion.div>
+                </div>
+                <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute top-12 right-8 md:right-12 glass-float">
+                  <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-xl bg-[#00C897]/15 flex items-center justify-center"><BadgeCheck className="w-4 h-4 text-[#72F1D0]" /></div><div><div className="text-xs text-white/50">Network</div><div className="text-sm font-semibold">Verified care</div></div></div>
+                </motion.div>
+                <motion.div animate={{ y: [0, 9, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: .5 }} className="absolute bottom-14 left-7 md:left-12 glass-float">
+                  <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-xl bg-[#1B72E8]/25 flex items-center justify-center"><Activity className="w-4 h-4 text-[#A8D4FF]" /></div><div><div className="text-xs text-white/50">Patient first</div><div className="text-sm font-semibold">Care in motion</div></div></div>
+                </motion.div>
+                <div className="absolute bottom-9 right-8 text-[10px] uppercase tracking-[.18em] text-white/35">Move your cursor</div>
+              </div>
             </motion.div>
-          </motion.div>
+          </div>
 
           {/* Search Box */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-            className="bg-white rounded-2xl shadow-2xl p-3 flex flex-col sm:flex-row gap-2 max-w-3xl"
+            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+            className="mt-4 bg-white/[.98] rounded-[1.35rem] shadow-2xl shadow-black/20 p-2.5 flex flex-col sm:flex-row gap-2 max-w-5xl border border-white/30"
           >
-            <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100">
-              <Search className="w-4 h-4 text-gray-400 shrink-0" />
+            <div className="flex items-center gap-3 flex-1 px-4 py-3 rounded-xl bg-[#F3F7FC] border border-[#E3EBF5]">
+              <Search className="w-5 h-5 text-primary shrink-0" />
               <input
-                className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 text-sm outline-none"
-                placeholder="Search doctor, specialization, symptom..."
+                className="flex-1 bg-transparent text-[#0D1B2A] placeholder-[#8291A7] text-sm outline-none"
+                placeholder={heroMode === "doctor" ? "Search your specialty or city..." : "Search a doctor, specialty, or symptom..."}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -124,7 +188,7 @@ export default function Home() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 sm:w-52">
               <button title="Detect my location" onClick={detectLocation} disabled={locating}
                 className="shrink-0 hover:text-primary transition-colors disabled:opacity-50">
-                <LocateFixed className={`w-4 h-4 ${locating ? "animate-pulse text-primary" : "text-gray-400"}`} />
+                <LocateFixed className={`w-4 h-4 ${locating ? "animate-pulse text-primary" : "text-[#8291A7]"}`} />
               </button>
               <select className="flex-1 bg-transparent text-gray-700 text-sm outline-none cursor-pointer"
                 value={city} onChange={(e) => setCity(e.target.value)}>
@@ -134,10 +198,10 @@ export default function Home() {
               <ChevronDown className="w-3 h-3 text-gray-400" />
             </div>
             <button
-              className="bg-primary text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-primary/90 active:scale-95 transition-all shrink-0"
+              className="bg-[#0D1B2A] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-primary active:scale-95 transition-all shrink-0 inline-flex items-center justify-center gap-2"
               onClick={() => navigate(`/doctors?q=${encodeURIComponent(search)}&city=${encodeURIComponent(city)}`)}
             >
-              Search Doctors
+              {heroContent.action} <ArrowRight className="w-4 h-4" />
             </button>
           </motion.div>
         </div>
@@ -150,18 +214,18 @@ export default function Home() {
 
       {/* Stats Strip */}
       <motion.section
-        className="bg-white border-b border-border"
+        className="bg-white/80 backdrop-blur border-b border-border"
         initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}
       >
         <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { value: "1,000+", label: "Verified Doctors", icon: "🏥" },
-            { value: "50,000+", label: "Happy Patients", icon: "😊" },
-            { value: "20+", label: "Cities Covered", icon: "📍" },
-            { value: "4.8★", label: "Average Rating", icon: "⭐" },
+            { value: "1,000+", label: "Verified Doctors", icon: Stethoscope },
+            { value: "50,000+", label: "Patients supported", icon: UsersRound },
+            { value: "20+", label: "Cities covered", icon: LocateFixed },
+            { value: "4.8", label: "Average rating", icon: ShieldCheck },
           ].map((s) => (
             <motion.div key={s.label} variants={fadeUp} className="flex items-center gap-3">
-              <span className="text-2xl">{s.icon}</span>
+              <span className="w-10 h-10 rounded-2xl bg-secondary text-primary flex items-center justify-center"><s.icon className="w-5 h-5" /></span>
               <div>
                 <div className="text-xl font-bold text-foreground">{s.value}</div>
                 <div className="text-xs text-muted-foreground">{s.label}</div>
