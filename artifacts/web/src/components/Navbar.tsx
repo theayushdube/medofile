@@ -10,11 +10,9 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <button onClick={() => navigate("/")} className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="text-xl font-bold text-foreground">
+        <button onClick={() => navigate("/")} className="flex items-center gap-2.5" aria-label="Go to Medofile home">
+          <img src="/brand-mark.svg" alt="" className="w-9 h-9 rounded-xl shadow-sm" />
+          <span className="text-xl font-bold tracking-tight text-foreground">
             Medo<span className="text-primary">file</span>
           </span>
         </button>

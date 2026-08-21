@@ -238,11 +238,13 @@ export default function HealthBotScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       base64: true,
-      quality: 0.7,
+      quality: 0.82,
+      exif: false,
       allowsEditing: false,
     });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
+    if (!asset.base64) return;
     const ext = asset.uri.split(".").pop()?.toLowerCase() || "jpg";
     const mime = ext === "png" ? "image/png" : "image/jpeg";
     const dataUrl = `data:${mime};base64,${asset.base64}`;
@@ -254,10 +256,12 @@ export default function HealthBotScreen() {
     if (status !== "granted") return;
     const result = await ImagePicker.launchCameraAsync({
       base64: true,
-      quality: 0.7,
+      quality: 0.82,
+      exif: false,
     });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
+    if (!asset.base64) return;
     const dataUrl = `data:image/jpeg;base64,${asset.base64}`;
     await sendMessage("Analyze this prescription", dataUrl);
   }

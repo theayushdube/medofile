@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { openai } from "@workspace/integrations-openai-ai-server";
+import { logger } from "../lib/logger.js";
 
 const router: IRouter = Router();
 
@@ -103,10 +104,10 @@ router.post("/chat/prescription", async (req, res): Promise<void> => {
   res.flushHeaders?.();
 
   try {
-    const stream = await openai.chat.completions.create({
+    const completion = await openai.chat.completions.create({
       model: "gpt-5-mini",
-          max_completion_tokens: 700,
-      stream: true,
+      max_completion_tokens: 700,
+      stream: false,
       messages: [
         {
           role: "system",
@@ -133,14 +134,15 @@ If the image is unclear, say so in one sentence. Do not provide diagnosis, treat
       ]
     });
 
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        res.write(`data: ${JSON.stringify({ content })}\n\n`);
-      }
+    const content = completion.choices[0]?.message?.content;
+    if (typeof content === "string" && content.trim()) {
+      res.write(`data: ${JSON.stringify({ content })}\n\n`);
+    } else {
+      res.write(`data: ${JSON.stringify({ content: "I couldn't read a usable result from that prescription image. Please upload a clear, well-lit photo with the full prescription visible." })}\n\n`);
     }
-  } catch (err: any) {
-    res.write(`data: ${JSON.stringify({ content: "I couldn't analyze this image clearly. Please visit your nearest pharmacy or doctor for assistance." })}\n\n`);
+  } catch (err: unknown) {
+    logger.error({ err }, "Prescription image analysis failed");
+    res.write(`data: ${JSON.stringify({ content: "I couldn't analyze this prescription right now. Please try again in a moment." })}\n\n`);
   }
 
   res.write(`data: ${JSON.stringify({ done: true })}\n\n`);

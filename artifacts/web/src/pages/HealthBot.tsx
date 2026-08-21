@@ -88,6 +88,42 @@ function formatContent(text: string) {
   ));
 }
 
+function preparePrescriptionImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new window.Image();
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const maxDimension = 1800;
+      const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("Unable to prepare image"));
+        return;
+      }
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Unable to encode image"));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error ?? new Error("Unable to read image"));
+        reader.readAsDataURL(blob);
+      }, "image/jpeg", 0.82);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Unable to load image"));
+    };
+    image.src = objectUrl;
+  });
+}
+
 export default function HealthBot() {
   const [, navigate] = useLocation();
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
@@ -209,15 +245,16 @@ export default function HealthBot() {
     }
   }, [messages, streaming]);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      sendMessage("Analyze this prescription", reader.result as string);
-    };
-    reader.readAsDataURL(file);
     e.target.value = "";
+    try {
+      const imageDataUrl = await preparePrescriptionImage(file);
+      sendMessage("Analyze this prescription", imageDataUrl);
+    } catch {
+      sendMessage("I couldn't prepare that image. Please choose a clear prescription photo and try again.");
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
