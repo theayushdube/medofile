@@ -116,7 +116,7 @@ Return only:
 1. "Medicines found:" followed by up to 8 bullets in the format "- medicine name — general category"
 2. "Visible instructions:" followed by only instructions that are clearly readable, or "None clearly readable."
 3. One short line: "Please confirm medicines and instructions with your doctor or pharmacist."
-If the image is unclear, say so in one sentence. Do not provide diagnosis, treatment advice, dosage advice, side effects, interactions, warnings, or extra medical background. Never tell the patient to start or stop a medicine.`
+Carefully inspect both printed and handwritten text. If one medicine or instruction is unclear, omit it or mark only that item as unclear while still returning every name you can read. Say the whole image is unclear only when no medicine name or instruction is legible. Do not provide diagnosis, treatment advice, dosage advice, side effects, interactions, warnings, or extra medical background. Never tell the patient to start or stop a medicine.`
         },
         {
           role: "user",
