@@ -53,56 +53,46 @@ export default function HomeScreen() {
   const [selectedSpec, setSelectedSpec] = useState<string | null>(null);
   const [locationText, setLocationText] = useState("Detecting location...");
   const [locationLoading, setLocationLoading] = useState(true);
+  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
   const [tipIndex, setTipIndex] = useState(0);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  // Location fetch on mount
-  React.useEffect(() => {
-    (async () => {
-      try {
-        if (Platform.OS === "web") {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              async (pos) => {
-                setLocationText("Your Location");
-                setLocationLoading(false);
-              },
-              () => {
-                setLocationText("New Delhi, India");
-                setLocationLoading(false);
-              }
-            );
-          } else {
-            setLocationText("New Delhi, India");
-            setLocationLoading(false);
-          }
-          return;
-        }
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          setLocationText("New Delhi, India");
-          setLocationLoading(false);
-          return;
-        }
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
-        const [place] = await Location.reverseGeocodeAsync({
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-        });
-        if (place) {
-          setLocationText(`${place.city ?? place.district ?? "Your City"}, ${place.country ?? "India"}`);
-        } else {
-          setLocationText("Your Location");
-        }
-      } catch {
-        setLocationText("New Delhi, India");
-      } finally {
-        setLocationLoading(false);
+  const detectLocation = React.useCallback(async () => {
+    setLocationLoading(true);
+    try {
+      if (Platform.OS === "web") {
+        if (!navigator.geolocation) throw new Error("unsupported");
+        await new Promise<void>((resolve, reject) => navigator.geolocation.getCurrentPosition(async (position) => {
+          const { latitude, longitude } = position.coords;
+          setCoordinates({ latitude, longitude });
+          try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+            const payload = response.ok ? await response.json() as { address?: Record<string, string> } : null;
+            const address = payload?.address;
+            setLocationText([address?.suburb || address?.neighbourhood || address?.city || address?.town, address?.state].filter(Boolean).join(", ") || "Your current area");
+          } catch { setLocationText("Your current area"); }
+          resolve();
+        }, reject, { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 }));
+        return;
       }
-    })();
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") { setLocationText("Location permission needed"); return; }
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setCoordinates({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      const [place] = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      setLocationText(place ? [place.district || place.city || place.subregion, place.region || place.country].filter(Boolean).join(", ") : "Your current area");
+    } catch {
+      setLocationText("Tap to set your location");
+    } finally {
+      setLocationLoading(false);
+    }
   }, []);
+
+  React.useEffect(() => {
+    void detectLocation();
+  }, [detectLocation]);
 
   // Tip rotation
   React.useEffect(() => {
@@ -113,7 +103,7 @@ export default function HomeScreen() {
   }, []);
 
   const filteredDoctors = useMemo(() => {
-    return DOCTORS.filter((d) => {
+    const matching = DOCTORS.filter((d) => {
       const q = search.toLowerCase();
       const matchSearch =
         !q ||
@@ -124,7 +114,12 @@ export default function HomeScreen() {
       const matchSpec = !selectedSpec || d.specialization === selectedSpec;
       return matchSearch && matchSpec;
     });
-  }, [search, selectedSpec]);
+    if (!coordinates) return matching;
+    return matching.slice().sort((a, b) => {
+      const distance = (doctor: typeof a) => Math.hypot(doctor.location.lat - coordinates.latitude, doctor.location.lng - coordinates.longitude);
+      return distance(a) - distance(b);
+    });
+  }, [coordinates, search, selectedSpec]);
 
   const topRated = useMemo(
     () => DOCTORS.slice().sort((a, b) => b.rating - a.rating).slice(0, 4),
@@ -429,7 +424,7 @@ export default function HomeScreen() {
     },
   });
 
-  const showFiltered = !!(search || selectedSpec);
+  const showFiltered = !!(search || selectedSpec || coordinates);
   const name = patientProfile?.name ?? "there";
   const initial = name[0]?.toUpperCase() ?? "U";
 
@@ -438,7 +433,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={s.header}>
         <View style={s.topRow}>
-          <Pressable style={s.locationRow} onPress={() => {}}>
+          <Pressable style={s.locationRow} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); void detectLocation(); }}>
             <Ionicons name="location" size={14} color={colors.primary} />
             <View>
               <Text style={s.locationLabel}>Your Location</Text>
@@ -469,7 +464,7 @@ export default function HomeScreen() {
             style={s.searchInput}
             value={search}
             onChangeText={setSearch}
-            placeholder="Search doctors, specializations, city..."
+              placeholder={coordinates ? "Search care near you..." : "Search doctors, specializations, city..."}
             placeholderTextColor={colors.mutedForeground}
             returnKeyType="search"
           />

@@ -16,6 +16,24 @@ type DoctorAnalytics = {
   weeklyTrend: number[];
 };
 
+function distanceInKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const toRadians = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+  const latDelta = toRadians(lat2 - lat1);
+  const lngDelta = toRadians(lng2 - lng1);
+  const a = Math.sin(latDelta / 2) ** 2 + Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(lngDelta / 2) ** 2;
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function doctorDistance(doctor: typeof doctors.$inferSelect, lat: number, lng: number): number | null {
+  const location = doctor.location as { lat?: unknown; lng?: unknown } | null;
+  const doctorLat = Number(location?.lat);
+  const doctorLng = Number(location?.lng);
+  return Number.isFinite(doctorLat) && Number.isFinite(doctorLng) && (doctorLat !== 0 || doctorLng !== 0)
+    ? distanceInKm(lat, lng, doctorLat, doctorLng)
+    : null;
+}
+
 router.get("/doctors", async (req, res): Promise<void> => {
   try {
     const all = await db.select().from(doctors).orderBy(doctors.id);
@@ -29,6 +47,10 @@ router.get("/doctors", async (req, res): Promise<void> => {
     const minFee = Number(req.query.minFee);
     const maxFee = Number(req.query.maxFee);
     const sort = typeof req.query.sort === "string" ? req.query.sort : "relevance";
+    const userLat = Number(req.query.lat);
+    const userLng = Number(req.query.lng);
+    const radiusKm = Math.min(250, Math.max(1, Number(req.query.radiusKm) || 80));
+    const canRankByDistance = Number.isFinite(userLat) && Number.isFinite(userLng);
 
     let result = all.filter((doctor) => {
       const searchable = [doctor.name, doctor.specialization, doctor.city, doctor.hospital, doctor.clinicName]
@@ -43,9 +65,16 @@ router.get("/doctors", async (req, res): Promise<void> => {
         (!consultationType || doctor.consultationTypes.includes(consultationType)) &&
         (!availability || availability === "all" || availability === "available" ? (!availability || availability === "all" || doctor.isAcceptingBookings) : true) &&
         (!Number.isFinite(minFee) || doctor.fee >= minFee) &&
-        (!Number.isFinite(maxFee) || doctor.fee <= maxFee)
+        (!Number.isFinite(maxFee) || doctor.fee <= maxFee) &&
+        (!canRankByDistance || (() => {
+          const distance = doctorDistance(doctor, userLat, userLng);
+          return distance === null || distance <= radiusKm;
+        })())
       );
     });
+    if (canRankByDistance) {
+      result = [...result].sort((left, right) => (doctorDistance(left, userLat, userLng) ?? Infinity) - (doctorDistance(right, userLat, userLng) ?? Infinity));
+    }
     if (sort === "rating") result = [...result].sort((a, b) => b.rating - a.rating);
     if (sort === "fee") result = [...result].sort((a, b) => a.fee - b.fee);
     if (sort === "experience") result = [...result].sort((a, b) => b.experience - a.experience);
@@ -87,6 +116,9 @@ router.get("/doctor-matches", async (req, res): Promise<void> => {
     const maxFee = Number(req.query.maxFee);
     const consultationType = String(req.query.consultationType ?? "").trim().toLowerCase();
     const availability = String(req.query.availability ?? "").trim().toLowerCase();
+    const userLat = Number(req.query.lat);
+    const userLng = Number(req.query.lng);
+    const canRankByDistance = Number.isFinite(userLat) && Number.isFinite(userLng);
     const matches = all.map((doctor) => {
       let score = Math.round(doctor.rating * 10);
       const reasons: string[] = [];
@@ -98,6 +130,8 @@ router.get("/doctor-matches", async (req, res): Promise<void> => {
       if (Number.isFinite(maxFee) && doctor.fee <= maxFee) { score += 12; reasons.push(`Within your ₹${maxFee.toLocaleString("en-IN")} budget`); }
       if (consultationType && doctor.consultationTypes.includes(consultationType)) { score += 10; reasons.push(`${consultationType === "home" ? "Home visit" : "In-clinic"} care available`); }
       if (availability === "available" && doctor.isAcceptingBookings) { score += 10; reasons.push("Currently accepting booking requests"); }
+      const distance = canRankByDistance ? doctorDistance(doctor, userLat, userLng) : null;
+      if (distance !== null) { score += Math.max(0, 30 - Math.round(distance / 4)); reasons.push(`${Math.round(distance)} km from your location`); }
       if (!reasons.length) reasons.push(`Highly rated ${doctor.specialization} on Medofile`);
       return { doctor, score, reasons };
     }).sort((left, right) => right.score - left.score).slice(0, 6);

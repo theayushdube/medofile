@@ -20,6 +20,7 @@ export type WebDoctor = Omit<ApiDoctor, "id"> & { id: string };
 export type DoctorSearchFilters = {
   q?: string; city?: string; specialization?: string; language?: string; gender?: string;
   consultationType?: string; minFee?: string; maxFee?: string; availability?: string; sort?: string;
+  lat?: string; lng?: string; radiusKm?: string;
 };
 
 function normalize(doctor: ApiDoctor): WebDoctor {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, MapPin, SlidersHorizontal, X, LocateFixed } from "lucide-react";
+import { Search, MapPin, SlidersHorizontal, X, LocateFixed, Navigation, CircleAlert } from "lucide-react";
 import { motion } from "framer-motion";
 import { SPECIALIZATIONS } from "@/data/doctors";
 import { useDoctors } from "@/hooks/useDoctors";
@@ -37,6 +37,9 @@ export default function DoctorList() {
   const [availability, setAvailability] = useState<"" | "available">("");
   const [showFilters, setShowFilters] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationLabel, setLocationLabel] = useState("");
+  const [locationError, setLocationError] = useState("");
   const [matchReasons, setMatchReasons] = useState<Record<number, string[]>>({});
 
   useEffect(() => {
@@ -46,13 +49,41 @@ export default function DoctorList() {
     if (c && c !== "All Cities") setCity(c);
   }, []);
 
+  async function getLocationLabel(lat: number, lng: number): Promise<string> {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, { headers: { "Accept-Language": "en" } });
+      const place = response.ok ? await response.json() as { address?: Record<string, string> } : null;
+      const address = place?.address;
+      const localArea = address?.suburb || address?.neighbourhood || address?.town || address?.city || address?.county;
+      const region = address?.state_district || address?.state;
+      if (localArea) return region ? `${localArea}, ${region}` : localArea;
+    } catch {
+      // Coordinates still provide an accurate nearby-doctor search if reverse geocoding is unavailable.
+    }
+    return nearestCity(lat, lng) !== "All Cities" ? `Near ${nearestCity(lat, lng)}` : "Your current area";
+  }
+
   function detectLocation() {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setLocationError("Location is not supported by this browser.");
+      return;
+    }
     setLocating(true);
+    setLocationError("");
     navigator.geolocation.getCurrentPosition(
-      (pos) => { setCity(nearestCity(pos.coords.latitude, pos.coords.longitude)); setLocating(false); },
-      () => setLocating(false),
-      { timeout: 8000 }
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const closestCity = nearestCity(latitude, longitude);
+        setCoordinates({ lat: latitude, lng: longitude });
+        if (closestCity !== "All Cities") setCity(closestCity);
+        setLocationLabel(await getLocationLabel(latitude, longitude));
+        setLocating(false);
+      },
+      (error) => {
+        setLocationError(error.code === error.PERMISSION_DENIED ? "Location permission was denied. Choose a city instead." : "We could not get your location. Please try again.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 }
     );
   }
 
@@ -66,12 +97,16 @@ export default function DoctorList() {
     maxFee,
     availability,
     sort: sort === "Rating: High to Low" ? "rating" : sort === "Fee: Low to High" ? "fee" : sort === "Experience: Most" ? "experience" : "relevance",
+    lat: coordinates ? String(coordinates.lat) : "",
+    lng: coordinates ? String(coordinates.lng) : "",
+    radiusKm: coordinates ? "80" : "",
   });
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (selectedSpec) params.set("specializations", selectedSpec);
     if (city !== "All Cities") params.set("city", city);
+    if (coordinates) { params.set("lat", String(coordinates.lat)); params.set("lng", String(coordinates.lng)); }
     if (language) params.set("language", language);
     if (maxFee) params.set("maxFee", maxFee);
     if (consultFilter) params.set("consultationType", consultFilter);
@@ -83,7 +118,7 @@ export default function DoctorList() {
       setMatchReasons(Object.fromEntries((payload.data ?? []).map((match: { doctor: { id: number }; reasons: string[] }) => [match.doctor.id, match.reasons])));
     }).catch(() => !cancelled && setMatchReasons({}));
     return () => { cancelled = true; };
-  }, [availability, city, consultFilter, language, maxFee, selectedSpec]);
+  }, [availability, city, consultFilter, coordinates, language, maxFee, selectedSpec]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,16 +138,16 @@ export default function DoctorList() {
               />
               {search && <button onClick={() => setSearch("")}><X className="w-3 h-3 text-muted-foreground" /></button>}
             </div>
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-muted border border-border">
+            <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${coordinates ? "bg-primary/5 border-primary/25" : "bg-muted border-border"}`}>
               <button
-                title="Detect my location"
+                title="Use my current location"
                 onClick={detectLocation}
                 disabled={locating}
                 className="hover:text-primary transition-colors disabled:opacity-50"
               >
-                <LocateFixed className={`w-4 h-4 ${locating ? "animate-pulse text-primary" : "text-muted-foreground"}`} />
+                {locating ? <LocateFixed className="w-4 h-4 animate-pulse text-primary" /> : <Navigation className={`w-4 h-4 ${coordinates ? "text-primary" : "text-muted-foreground"}`} />}
               </button>
-              <MapPin className="w-4 h-4 text-muted-foreground" />
+              <MapPin className={`w-4 h-4 ${coordinates ? "text-primary" : "text-muted-foreground"}`} />
               <select
                 className="bg-transparent text-sm text-foreground outline-none cursor-pointer"
                 value={city}
@@ -129,6 +164,11 @@ export default function DoctorList() {
               Filters
             </button>
           </div>
+          {(locationLabel || locationError) && <div className={`mt-3 flex items-center gap-2 text-xs font-medium ${locationError ? "text-amber-700" : "text-primary"}`}>
+            {locationError ? <CircleAlert className="w-3.5 h-3.5" /> : <LocateFixed className="w-3.5 h-3.5" />}
+            <span>{locationError || `Showing doctors near ${locationLabel}`}</span>
+            {coordinates && !locationError && <button onClick={() => { setCoordinates(null); setLocationLabel(""); }} className="underline underline-offset-2">Clear</button>}
+          </div>}
 
           {/* Advanced filters */}
           {showFilters && (
