@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export interface ApiDoctor {
   id: number; name: string; qualification: string; specialization: string;
   experience: number; rating: number; reviewCount: number; fee: number;
   hospital: string; clinicName: string; address: string; city: string;
-  phone: string; about: string; languages: string[]; availability: string;
-  isVerified: boolean; isPremium: boolean; emergencyAvailable: boolean;
+  phone: string; about: string; languages: string[]; availability: string; timing: string;
+  isAcceptingBookings: boolean; isVerified: boolean; isPremium: boolean; emergencyAvailable: boolean;
   gender: "Male" | "Female"; consultationTypes: ("clinic" | "home")[];
-  registrationNumber: string; avatar: string; timing: string;
+  registrationNumber: string; avatar: string;
   location: { lat: number; lng: number; mapsUrl: string };
   socials: Record<string, string>;
   analytics: { impressions: number; profileViews: number; callClicks: number; chatClicks: number; bookings: number; directionsClicks: number; weeklyTrend: number[] };
@@ -17,40 +17,47 @@ export interface ApiDoctor {
 }
 
 export type WebDoctor = Omit<ApiDoctor, "id"> & { id: string };
+export type DoctorSearchFilters = {
+  q?: string; city?: string; specialization?: string; language?: string; gender?: string;
+  consultationType?: string; minFee?: string; maxFee?: string; availability?: string; sort?: string;
+};
 
-function normalize(d: ApiDoctor): WebDoctor {
-  return { ...d, id: String(d.id) };
+function normalize(doctor: ApiDoctor): WebDoctor {
+  return { ...doctor, id: String(doctor.id) };
 }
 
 const cache: { doctors: WebDoctor[] | null; ts: number } = { doctors: null, ts: 0 };
 const TTL = 60_000;
 
-export function useDoctors() {
+export function useDoctors(filters: DoctorSearchFilters = {}) {
   const [doctors, setDoctors] = useState<WebDoctor[]>(() => cache.doctors ?? []);
-  const [loading, setLoading] = useState(!cache.doctors);
+  const [loading, setLoading] = useState(true);
+  const filterKey = JSON.stringify(filters);
 
   useEffect(() => {
-    if (cache.doctors && Date.now() - cache.ts < TTL) {
+    const hasFilters = Object.values(filters).some(Boolean);
+    if (!hasFilters && cache.doctors && Date.now() - cache.ts < TTL) {
       setDoctors(cache.doctors);
       setLoading(false);
       return;
     }
     let cancelled = false;
     setLoading(true);
-    fetch("/api/doctors")
-      .then((r) => r.ok ? r.json() : [])
-      .then((data: ApiDoctor[]) => {
-        if (!cancelled) {
-          const normalized = data.map(normalize);
-          cache.doctors = normalized;
-          cache.ts = Date.now();
-          setDoctors(normalized);
-          setLoading(false);
-        }
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => { if (value) params.set(key, value); });
+    fetch(`/api/doctors${params.size ? `?${params.toString()}` : ""}`)
+      .then((response) => response.ok ? response.json() : { data: [] })
+      .then((payload: { data?: ApiDoctor[] } | ApiDoctor[]) => {
+        const records = Array.isArray(payload) ? payload : payload.data ?? [];
+        const normalized = records.map(normalize);
+        if (cancelled) return;
+        if (!hasFilters) { cache.doctors = normalized; cache.ts = Date.now(); }
+        setDoctors(normalized);
+        setLoading(false);
       })
       .catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [filterKey]);
 
   return { doctors, loading };
 }
@@ -61,16 +68,14 @@ export function useDoctor(id: string | undefined) {
 
   useEffect(() => {
     if (!id) { setLoading(false); return; }
-    if (cache.doctors) {
-      const found = cache.doctors.find((d) => d.id === id);
-      if (found) { setDoctor(found); setLoading(false); return; }
-    }
+    const cached = cache.doctors?.find((item) => item.id === id);
+    if (cached) { setDoctor(cached); setLoading(false); return; }
     let cancelled = false;
     setLoading(true);
     fetch(`/api/doctors/${id}`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((data: ApiDoctor | null) => {
-        if (!cancelled) { setDoctor(data ? normalize(data) : null); setLoading(false); }
+      .then((response) => response.ok ? response.json() : null)
+      .then((record: ApiDoctor | null) => {
+        if (!cancelled) { setDoctor(record ? normalize(record) : null); setLoading(false); }
       })
       .catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };

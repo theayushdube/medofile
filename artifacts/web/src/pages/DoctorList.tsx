@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Search, MapPin, SlidersHorizontal, X, LocateFixed } from "lucide-react";
 import { motion } from "framer-motion";
 import { SPECIALIZATIONS } from "@/data/doctors";
@@ -26,13 +26,15 @@ function nearestCity(lat: number, lng: number): string {
 }
 
 export default function DoctorList() {
-  const { doctors, loading } = useDoctors();
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("All Cities");
   const [selectedSpec, setSelectedSpec] = useState("");
   const [sort, setSort] = useState("Relevance");
   const [genderFilter, setGenderFilter] = useState<"All" | "Male" | "Female">("All");
   const [consultFilter, setConsultFilter] = useState<"" | "clinic" | "home">("");
+  const [language, setLanguage] = useState("");
+  const [maxFee, setMaxFee] = useState("");
+  const [availability, setAvailability] = useState<"" | "available">("");
   const [showFilters, setShowFilters] = useState(false);
   const [locating, setLocating] = useState(false);
 
@@ -53,22 +55,17 @@ export default function DoctorList() {
     );
   }
 
-  const filtered = useMemo(() => {
-    let docs = doctors.filter((d) => {
-      const q = search.toLowerCase();
-      return (
-        (!q || d.name.toLowerCase().includes(q) || d.specialization.toLowerCase().includes(q)) &&
-        (city === "All Cities" || d.city === city) &&
-        (!selectedSpec || d.specialization === selectedSpec) &&
-        (genderFilter === "All" || d.gender === genderFilter) &&
-        (!consultFilter || d.consultationTypes.includes(consultFilter))
-      );
-    });
-    if (sort === "Rating: High to Low") docs = [...docs].sort((a, b) => b.rating - a.rating);
-    else if (sort === "Fee: Low to High") docs = [...docs].sort((a, b) => a.fee - b.fee);
-    else if (sort === "Experience: Most") docs = [...docs].sort((a, b) => b.experience - a.experience);
-    return docs;
-  }, [search, city, selectedSpec, sort, genderFilter, consultFilter, doctors]);
+  const { doctors: filtered, loading } = useDoctors({
+    q: search,
+    city: city === "All Cities" ? "" : city,
+    specialization: selectedSpec,
+    gender: genderFilter === "All" ? "" : genderFilter,
+    consultationType: consultFilter,
+    language,
+    maxFee,
+    availability,
+    sort: sort === "Rating: High to Low" ? "rating" : sort === "Fee: Low to High" ? "fee" : sort === "Experience: Most" ? "experience" : "relevance",
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -149,6 +146,11 @@ export default function DoctorList() {
                   {t === "" ? "All Types" : t === "clinic" ? "In-Clinic" : "Home Visit"}
                 </button>
               ))}
+               <input value={language} onChange={(e) => setLanguage(e.target.value)} placeholder="Language" className="w-28 px-3 py-1.5 rounded-lg bg-muted border border-border text-sm text-foreground outline-none" />
+               <select value={maxFee} onChange={(e) => setMaxFee(e.target.value)} className="px-3 py-1.5 rounded-lg bg-muted border border-border text-sm text-foreground outline-none">
+                 <option value="">Any fee</option><option value="500">Up to ₹500</option><option value="1000">Up to ₹1,000</option><option value="1500">Up to ₹1,500</option>
+               </select>
+               <button onClick={() => setAvailability(availability ? "" : "available")} className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${availability ? "bg-primary text-white border-primary" : "bg-white border-border text-foreground hover:border-primary/50"}`}>Available now</button>
 
               {/* Sort */}
               <select

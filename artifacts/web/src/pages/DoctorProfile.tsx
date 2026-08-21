@@ -1,11 +1,13 @@
 import { useState } from "react";
 import React from "react";
+import { useEffect } from "react";
+import { useUser } from "@clerk/react";
 import { motion } from "framer-motion";
 import { useRoute, useLocation } from "wouter";
 import {
   Star, MapPin, Shield, Phone, Calendar, Home, Building2,
   Navigation, Clock, Award, GraduationCap, Globe, Instagram,
-  Youtube, Facebook, Linkedin, Twitter, ChevronLeft, ExternalLink, TrendingUp
+  Youtube, Facebook, Linkedin, Twitter, ChevronLeft, ExternalLink, TrendingUp, Bookmark, BookmarkCheck
 } from "lucide-react";
 import { useDoctor } from "@/hooks/useDoctors";
 import { Navbar } from "@/components/Navbar";
@@ -55,9 +57,29 @@ export default function DoctorProfile() {
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
   const [showMap, setShowMap] = useState(false);
+  const { user, isLoaded } = useUser();
+  const [saved, setSaved] = useState(false);
+  const [saveBusy, setSaveBusy] = useState(false);
 
   const { doctor, loading } = useDoctor(params?.id);
   const reviews = REVIEWS.filter((r) => r.doctorId === params?.id);
+
+  useEffect(() => {
+    if (!isLoaded || !user || !params?.id) return;
+    fetch("/api/me/saved-doctors").then((response) => response.ok ? response.json() : []).then((items: Array<{ id: string }>) => setSaved(items.some((item) => String(item.id) === params.id))).catch(() => undefined);
+  }, [isLoaded, params?.id, user]);
+
+  async function toggleSaved() {
+    if (!doctor) return;
+    if (!user) { navigate("/sign-in"); return; }
+    setSaveBusy(true);
+    try {
+      const response = await fetch(`/api/me/saved-doctors/${doctor.id}`, { method: saved ? "DELETE" : "POST" });
+      if (response.ok) setSaved(!saved);
+    } finally {
+      setSaveBusy(false);
+    }
+  }
 
   if (loading) return (
     <div className="min-h-screen bg-background">
@@ -154,6 +176,9 @@ export default function DoctorProfile() {
                   className="flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
                 >
                   <Navigation className="w-4 h-4" /> Location
+                </button>
+                <button disabled={saveBusy} onClick={toggleSaved} className="flex items-center gap-2 bg-white/15 hover:bg-white/25 disabled:opacity-60 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                  {saved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />} {saved ? "Saved" : "Save doctor"}
                 </button>
                 <button
                   onClick={() => navigate(`/book/${doctor.id}`)}
@@ -413,6 +438,9 @@ export default function DoctorProfile() {
                 <div className="flex items-center gap-2 text-sm text-foreground">
                   <Clock className="w-3.5 h-3.5 text-primary" />
                   {doctor.timing}
+                </div>
+                <div className={`mt-2 text-xs px-3 py-1.5 rounded-lg ${doctor.isAcceptingBookings ? "bg-teal-50 text-teal-700" : "bg-amber-50 text-amber-700"}`}>
+                  {doctor.isAcceptingBookings ? "Accepting new booking requests" : "Bookings temporarily paused"}
                 </div>
                 {doctor.emergencyAvailable && (
                   <div className="mt-2 bg-red-50 text-red-600 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5">

@@ -1,9 +1,10 @@
-import { pgTable, serial, text, integer, boolean, real, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { index, pgTable, serial, text, integer, boolean, real, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 export const doctors = pgTable("doctors", {
   id: serial("id").primaryKey(),
+  ownerClerkUserId: text("owner_clerk_user_id").unique(),
   name: text("name").notNull(),
   qualification: text("qualification").notNull(),
   specialization: text("specialization").notNull(),
@@ -20,6 +21,7 @@ export const doctors = pgTable("doctors", {
   languages: jsonb("languages").notNull().default([]).$type<string[]>(),
   availability: text("availability").notNull().default(""),
   timing: text("timing").notNull().default(""),
+  isAcceptingBookings: boolean("is_accepting_bookings").notNull().default(true),
   isVerified: boolean("is_verified").notNull().default(false),
   isPremium: boolean("is_premium").notNull().default(false),
   emergencyAvailable: boolean("emergency_available").notNull().default(false),
@@ -41,7 +43,11 @@ export const doctors = pgTable("doctors", {
   branches: jsonb("branches").notNull().default([]).$type<Array<{ name: string; address: string; timing: string }>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [
+  index("doctors_city_idx").on(table.city),
+  index("doctors_specialization_idx").on(table.specialization),
+  index("doctors_owner_clerk_user_idx").on(table.ownerClerkUserId),
+]);
 
 export const insertDoctorSchema = createInsertSchema(doctors).omit({ id: true, createdAt: true, updatedAt: true });
 export type Doctor = typeof doctors.$inferSelect;

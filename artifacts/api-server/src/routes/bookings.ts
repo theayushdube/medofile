@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { bookings, doctors } from "@workspace/db/schema";
+import { bookings, doctors, patientProfiles } from "@workspace/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { requireAuth } from "../middleware/auth.js";
+import { getMedofileUserId, requireAuth } from "../middleware/auth.js";
 
 const router: IRouter = Router();
 
@@ -18,8 +18,26 @@ router.get("/bookings", requireAuth, async (req, res): Promise<void> => {
 router.post("/bookings", async (req, res): Promise<void> => {
   try {
     const data = req.body;
+    const doctorId = Number(data.doctorId);
+    if (!Number.isInteger(doctorId) || !data.patientName || !data.patientEmail || !data.patientPhone || !data.date || !data.time) {
+      res.status(400).json({ error: "doctor, patient contact, date, and time are required" });
+      return;
+    }
+    const patientClerkUserId = getMedofileUserId(req);
+    if (patientClerkUserId) {
+      await db
+        .insert(patientProfiles)
+        .values({
+          clerkUserId: patientClerkUserId,
+          name: String(data.patientName),
+          email: String(data.patientEmail),
+          phone: String(data.patientPhone),
+        })
+        .onConflictDoNothing({ target: patientProfiles.clerkUserId });
+    }
     const [created] = await db.insert(bookings).values({
-      doctorId: parseInt(data.doctorId),
+      doctorId,
+      patientClerkUserId,
       patientName: data.patientName,
       patientEmail: data.patientEmail,
       patientPhone: data.patientPhone,
@@ -33,14 +51,14 @@ router.post("/bookings", async (req, res): Promise<void> => {
     }).returning();
 
     try {
-      const [doc] = await db.select().from(doctors).where(eq(doctors.id, parseInt(data.doctorId))).limit(1);
+      const [doc] = await db.select().from(doctors).where(eq(doctors.id, doctorId)).limit(1);
       if (doc) {
         const analytics = { ...(doc.analytics as any) };
         analytics.bookings = (analytics.bookings || 0) + 1;
         const trend: number[] = [...(analytics.weeklyTrend || [0,0,0,0,0,0,0])];
         trend[6] = (trend[6] || 0) + 1;
         analytics.weeklyTrend = trend;
-        await db.update(doctors).set({ analytics, updatedAt: new Date() }).where(eq(doctors.id, parseInt(data.doctorId)));
+        await db.update(doctors).set({ analytics, updatedAt: new Date() }).where(eq(doctors.id, doctorId));
       }
     } catch {}
 
@@ -52,7 +70,7 @@ router.post("/bookings", async (req, res): Promise<void> => {
 
 router.put("/bookings/:id/status", requireAuth, async (req, res): Promise<void> => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     const { status } = req.body as { status: string };
     const [updated] = await db.update(bookings).set({ status }).where(eq(bookings.id, id)).returning();
     if (!updated) { res.status(404).json({ error: "Booking not found" }); return; }
@@ -64,7 +82,7 @@ router.put("/bookings/:id/status", requireAuth, async (req, res): Promise<void> 
 
 router.delete("/bookings/:id", requireAuth, async (req, res): Promise<void> => {
   try {
-    await db.delete(bookings).where(eq(bookings.id, parseInt(req.params.id)));
+    await db.delete(bookings).where(eq(bookings.id, parseInt(String(req.params.id))));
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: "Failed to delete booking" });

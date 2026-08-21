@@ -4,15 +4,19 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth, useUser } from "@clerk/expo";
 
 import { useApp, type UserRole } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { API_BASE_URL } from "@/constants/api";
 
 export default function RegisterScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { setUserRole, setPatientProfile, setActiveDoctorId } = useApp();
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const [role, setRole] = useState<UserRole>("patient");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,12 +25,14 @@ export default function RegisterScreen() {
   const [phone, setPhone] = useState("");
 
   async function continueRegistration() {
+    if (!user) { router.push("/sign-up"); return; }
     if (!name.trim()) return;
     if (role === "doctor" && (!specialization.trim() || !city.trim() || !phone.trim())) return;
     if (role === "doctor") {
-      const response = await fetch("/api/doctors/register", {
+      const token = await getToken();
+      const response = await fetch(`${API_BASE_URL}/doctors/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ name: name.trim(), specialization: specialization.trim(), city: city.trim(), phone: phone.trim() }),
       });
       if (!response.ok) return;
@@ -34,8 +40,10 @@ export default function RegisterScreen() {
       await setActiveDoctorId(String(doctor.id));
     }
     if (role === "patient") {
+      const token = await getToken();
+      await fetch(`${API_BASE_URL}/me`, { method: "PUT", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ name: name.trim(), email: user.primaryEmailAddress?.emailAddress ?? email.trim(), phone }) });
       setPatientProfile({
-        id: `patient-${Date.now()}`,
+        id: user.id,
         name: name.trim(),
         age: 0,
         gender: "",
@@ -77,8 +85,8 @@ export default function RegisterScreen() {
         <View style={styles.form}>
           <Text style={styles.label}>Your name</Text>
           <TextInput value={name} onChangeText={setName} placeholder={role === "doctor" ? "Dr. Your Name" : "Your full name"} placeholderTextColor="#7B8FA8" style={styles.input} />
-          <Text style={styles.label}>Email (optional)</Text>
-          <TextInput value={email} onChangeText={setEmail} placeholder="you@example.com" placeholderTextColor="#7B8FA8" keyboardType="email-address" autoCapitalize="none" style={styles.input} />
+          <Text style={styles.label}>Email</Text>
+          <TextInput value={user?.primaryEmailAddress?.emailAddress ?? email} onChangeText={setEmail} placeholder="Sign in to secure your care history" placeholderTextColor="#7B8FA8" keyboardType="email-address" autoCapitalize="none" style={styles.input} editable={!user} />
           {role === "doctor" && <>
             <Text style={styles.label}>Specialization</Text>
             <TextInput value={specialization} onChangeText={setSpecialization} placeholder="Cardiologist" placeholderTextColor="#7B8FA8" style={styles.input} />

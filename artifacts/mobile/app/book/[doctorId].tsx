@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useAuth } from "@clerk/expo";
 import React, { useState } from "react";
 import {
   Alert,
@@ -52,6 +53,7 @@ export default function BookScreen() {
   const insets = useSafeAreaInsets();
   const { doctorId } = useLocalSearchParams<{ doctorId: string }>();
   const { addAppointment, patientProfile } = useApp();
+  const { getToken } = useAuth();
 
   const doctor = DOCTORS.find((d) => d.id === doctorId) ?? DOCTORS[0];
 
@@ -118,9 +120,10 @@ export default function BookScreen() {
       notes: patientProblem || undefined,
     });
     try {
+      const token = await getToken();
       await fetch(`${API_BASE_URL}/bookings`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
           doctorId: doctor.id,
           patientName,

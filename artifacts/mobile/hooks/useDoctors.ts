@@ -20,6 +20,7 @@ interface ApiDoctor {
   languages: string[];
   availability: string;
   timing: string;
+  isAcceptingBookings: boolean;
   isVerified: boolean;
   isPremium: boolean;
   emergencyAvailable: boolean;
@@ -59,25 +60,30 @@ export const doctorsCache: { data: Doctor[] | null; ts: number } = {
 };
 const TTL = 60_000;
 
-export function useDoctors() {
+export type DoctorSearchFilters = { q?: string; city?: string; specialization?: string; language?: string; gender?: string; consultationType?: string; minFee?: string; maxFee?: string; availability?: string; sort?: string };
+export function useDoctors(filters: DoctorSearchFilters = {}) {
   const [doctors, setDoctors] = useState<Doctor[]>(() => doctorsCache.data ?? []);
   const [loading, setLoading] = useState(!doctorsCache.data);
 
+  const filterKey = JSON.stringify(filters);
   useEffect(() => {
-    if (doctorsCache.data && Date.now() - doctorsCache.ts < TTL) {
+    const hasFilters = Object.values(filters).some(Boolean);
+    if (!hasFilters && doctorsCache.data && Date.now() - doctorsCache.ts < TTL) {
       setDoctors(doctorsCache.data);
       setLoading(false);
       return;
     }
     let cancelled = false;
     setLoading(true);
-    fetch(`${API_BASE_URL}/doctors`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data: ApiDoctor[]) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => { if (value) params.set(key, value); });
+    fetch(`${API_BASE_URL}/doctors${params.size ? `?${params.toString()}` : ""}`)
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((payload: { data?: ApiDoctor[] } | ApiDoctor[]) => {
+        const data = Array.isArray(payload) ? payload : payload.data ?? [];
         if (!cancelled) {
           const normalized = data.map(normalize);
-          doctorsCache.data = normalized;
-          doctorsCache.ts = Date.now();
+          if (!hasFilters) { doctorsCache.data = normalized; doctorsCache.ts = Date.now(); }
           setDoctors(normalized);
           setLoading(false);
         }
@@ -88,7 +94,7 @@ export function useDoctors() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [filterKey]);
 
   return { doctors, loading };
 }

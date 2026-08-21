@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Menu, X, Sparkles } from "lucide-react";
+import { useClerk, useUser } from "@clerk/react";
+import { Menu, X, Sparkles, UserRound } from "lucide-react";
 
 export function Navbar() {
   const [, navigate] = useLocation();
+  const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
   const [open, setOpen] = useState(false);
 
   return (
@@ -32,12 +35,13 @@ export function Navbar() {
             <Sparkles className="w-3.5 h-3.5" />
             AI Assistant
           </button>
-          <button
-            onClick={() => navigate("/register")}
-            className="text-primary text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary/10 transition-colors"
-          >
-            Register
-          </button>
+          {isLoaded && user ? <>
+            <button onClick={() => navigate("/account")} className="flex items-center gap-1.5 text-primary text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary/10 transition-colors"><UserRound className="w-4 h-4" /> My care</button>
+            <button onClick={() => signOut({ redirectUrl: import.meta.env.BASE_URL.replace(/\/$/, "") || "/" })} className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">Sign out</button>
+          </> : <>
+            <button onClick={() => navigate("/sign-in")} className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">Sign in</button>
+            <button onClick={() => navigate("/register")} className="text-primary text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary/10 transition-colors">Create account</button>
+          </>}
           <button
             onClick={() => navigate("/doctors")}
             className="bg-primary text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors"
@@ -68,12 +72,10 @@ export function Navbar() {
               {item.label}
             </button>
           ))}
-          <button
-            onClick={() => { navigate("/register"); setOpen(false); }}
-            className="w-full bg-primary text-white text-sm font-semibold py-3 rounded-xl"
-          >
-            Register
-          </button>
+          {isLoaded && user ? <>
+            <button onClick={() => { navigate("/account"); setOpen(false); }} className="w-full bg-primary text-white text-sm font-semibold py-3 rounded-xl">My care</button>
+            <button onClick={() => { signOut({ redirectUrl: import.meta.env.BASE_URL.replace(/\/$/, "") || "/" }); setOpen(false); }} className="w-full text-sm font-semibold text-foreground py-2">Sign out</button>
+          </> : <button onClick={() => { navigate("/register"); setOpen(false); }} className="w-full bg-primary text-white text-sm font-semibold py-3 rounded-xl">Create account</button>}
         </div>
       )}
     </nav>

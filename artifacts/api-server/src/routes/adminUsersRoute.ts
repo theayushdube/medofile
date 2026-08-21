@@ -31,7 +31,7 @@ router.post("/admin/users", requireSuperAdmin, async (req, res): Promise<void> =
 
 router.delete("/admin/users/:id", requireSuperAdmin, async (req, res): Promise<void> => {
   try {
-    await db.delete(adminUsers).where(eq(adminUsers.id, parseInt(req.params.id)));
+    await db.delete(adminUsers).where(eq(adminUsers.id, parseInt(String(req.params.id))));
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: "Failed to delete user" });
