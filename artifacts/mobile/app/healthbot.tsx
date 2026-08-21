@@ -25,6 +25,7 @@ import { API_BASE_URL } from "@/constants/api";
 interface Doctor {
   id: number; name: string; specialization: string; avatar: string;
   rating: number; fee: number; city: string; experience: number;
+  reasons?: string[];
 }
 
 interface Message {
@@ -93,9 +94,10 @@ async function fetchDoctorSuggestions(specializations: string[], city: string): 
     const params = new URLSearchParams();
     if (specializations.length) params.set("specializations", specializations.join(","));
     if (city) params.set("city", city);
-    const r = await fetch(`${API_BASE_URL}/doctors/suggestions?${params}`);
+    const r = await fetch(`${API_BASE_URL}/doctor-matches?${params}`);
     if (!r.ok) return [];
-    return await r.json() as Doctor[];
+    const payload = await r.json() as { data: Array<{ doctor: Doctor; reasons: string[] }> };
+    return payload.data.map((match) => ({ ...match.doctor, reasons: match.reasons }));
   } catch { return []; }
 }
 
@@ -419,6 +421,7 @@ export default function HealthBotScreen() {
                       <Text style={s.docSugName} numberOfLines={1}>{doc.name}</Text>
                       <Text style={s.docSugSpec}>{doc.specialization} · {doc.city}</Text>
                       <Text style={s.docSugFee}>₹{doc.fee} · ⭐ {doc.rating} · {doc.experience}y exp</Text>
+                       {doc.reasons?.length ? <Text style={[s.docSugFee, { color: "#0F766E", marginTop: 3 }]}>{doc.reasons.slice(0, 2).join(" · ")}</Text> : null}
                     </View>
                     <View style={s.docSugBookBtn}>
                       <Text style={s.docSugBookText}>Book</Text>

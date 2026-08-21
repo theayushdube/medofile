@@ -29,8 +29,9 @@ interface AppContextType {
   setPatientProfile: (profile: PatientProfile) => void;
   toggleSaveDoctor: (doctorId: string) => Promise<void>;
   isDoctorSaved: (doctorId: string) => boolean;
-  addAppointment: (apt: Omit<Appointment, "id">) => void;
+  addAppointment: (apt: Omit<Appointment, "id"> & { id?: string }) => void;
   updateAppointmentStatus: (id: string, status: Appointment["status"]) => void;
+  updateAppointment: (id: string, updates: Partial<Appointment>) => void;
   getDoctorById: (id: string) => Doctor | undefined;
   logout: () => Promise<void>;
 }
@@ -59,6 +60,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function loadState() {
+      if (!isUserLoaded) return;
+      if (isSignedIn) {
+        // Never render a device-wide cache while a signed-in Clerk account hydrates.
+        setPatientProfileState(null);
+        setSavedDoctors([]);
+        setAppointments([]);
+        setUserRoleState(null);
+        setIsLoading(false);
+        return;
+      }
       try {
         const [role, patient, saved, apts, doctorId] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.USER_ROLE),
@@ -93,13 +104,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     }
     loadState();
-  }, []);
+  }, [isSignedIn, isUserLoaded]);
 
   useEffect(() => {
     if (!isUserLoaded || !isSignedIn || !user) return;
     const currentUser = user;
     let cancelled = false;
     async function hydrateAccount() {
+      // Clear any guest or previous-account cache before requesting this user's data.
+      setPatientProfileState(null);
+      setSavedDoctors([]);
+      setAppointments([]);
       try {
         const token = await getToken();
         const headers: Record<string, string> = {};
@@ -187,10 +202,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [savedDoctors]
   );
 
-  const addAppointment = useCallback((apt: Omit<Appointment, "id">) => {
+  const addAppointment = useCallback((apt: Omit<Appointment, "id"> & { id?: string }) => {
     const newApt: Appointment = {
       ...apt,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+      id: apt.id ?? (Date.now().toString() + Math.random().toString(36).substr(2, 5)),
     };
     setAppointments((prev) => {
       const next = [newApt, ...prev];
@@ -209,6 +224,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
     []
   );
+
+  const updateAppointment = useCallback((id: string, updates: Partial<Appointment>) => {
+    setAppointments((prev) => {
+      const next = prev.map((appointment) => appointment.id === id ? { ...appointment, ...updates } : appointment);
+      AsyncStorage.setItem(STORAGE_KEYS.APPOINTMENTS, JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   const getDoctorById = useCallback(
     (id: string) => DOCTORS.find((d) => d.id === id),
@@ -247,6 +270,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isDoctorSaved,
         addAppointment,
         updateAppointmentStatus,
+        updateAppointment,
         getDoctorById,
         logout,
       }}

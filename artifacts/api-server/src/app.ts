@@ -7,6 +7,7 @@ import router from "./routes/index.js";
 import { logger } from "./lib/logger.js";
 import { seedIfEmpty } from "./seed.js";
 import { startBlogScheduler } from "./services/blogPublisher.js";
+import { startReminderScheduler } from "./services/reminderScheduler.js";
 import {
   CLERK_PROXY_PATH,
   clerkProxyMiddleware,
@@ -51,5 +52,6 @@ app.use("/api", router);
 
 seedIfEmpty();
 startBlogScheduler();
+startReminderScheduler();
 
 export default app;

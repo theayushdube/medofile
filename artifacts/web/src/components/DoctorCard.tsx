@@ -6,9 +6,10 @@ import type { Doctor } from "@/data/doctors";
 interface Props {
   doctor: Doctor;
   compact?: boolean;
+  matchReasons?: string[];
 }
 
-export function DoctorCard({ doctor, compact = false }: Props) {
+export function DoctorCard({ doctor, compact = false, matchReasons = [] }: Props) {
   const [, navigate] = useLocation();
 
   return (
@@ -71,6 +72,7 @@ export function DoctorCard({ doctor, compact = false }: Props) {
                 </span>
               )}
             </div>
+            {matchReasons.length > 0 && <div className="mt-3 rounded-xl bg-primary/5 px-3 py-2"><p className="text-[11px] font-semibold text-primary">Why this matches</p><p className="text-xs text-muted-foreground mt-0.5">{matchReasons.slice(0, 2).join(" · ")}</p></div>}
 
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
               <div>

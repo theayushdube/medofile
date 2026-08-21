@@ -37,6 +37,7 @@ export default function DoctorList() {
   const [availability, setAvailability] = useState<"" | "available">("");
   const [showFilters, setShowFilters] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [matchReasons, setMatchReasons] = useState<Record<number, string[]>>({});
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -66,6 +67,23 @@ export default function DoctorList() {
     availability,
     sort: sort === "Rating: High to Low" ? "rating" : sort === "Fee: Low to High" ? "fee" : sort === "Experience: Most" ? "experience" : "relevance",
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (selectedSpec) params.set("specializations", selectedSpec);
+    if (city !== "All Cities") params.set("city", city);
+    if (language) params.set("language", language);
+    if (maxFee) params.set("maxFee", maxFee);
+    if (consultFilter) params.set("consultationType", consultFilter);
+    if (availability) params.set("availability", availability);
+    if (![...params.keys()].length) { setMatchReasons({}); return; }
+    let cancelled = false;
+    fetch(`/api/doctor-matches?${params}`).then((response) => response.ok ? response.json() : { data: [] }).then((payload) => {
+      if (cancelled) return;
+      setMatchReasons(Object.fromEntries((payload.data ?? []).map((match: { doctor: { id: number }; reasons: string[] }) => [match.doctor.id, match.reasons])));
+    }).catch(() => !cancelled && setMatchReasons({}));
+    return () => { cancelled = true; };
+  }, [availability, city, consultFilter, language, maxFee, selectedSpec]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -204,7 +222,7 @@ export default function DoctorList() {
                 key={doc.id}
                 variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
               >
-                <DoctorCard doctor={doc as any} />
+                <DoctorCard doctor={doc as any} matchReasons={matchReasons[Number(doc.id)]} />
               </motion.div>
             ))}
           </motion.div>

@@ -15,13 +15,8 @@ import { Navbar } from "@/components/Navbar";
 const TABS = ["Overview", "Treatments", "Reviews", "Location"] as const;
 type Tab = (typeof TABS)[number];
 
-const REVIEWS = [
-  { id: "r1", doctorId: "1", name: "Rahul Gupta", rating: 5, comment: "Dr. Sharma is exceptional. He explained my condition very clearly and the treatment was very effective.", date: "2025-05-10" },
-  { id: "r2", doctorId: "1", name: "Anita Verma", rating: 5, comment: "Very knowledgeable and patient doctor. He took time to understand my history before prescribing.", date: "2025-05-02" },
-  { id: "r3", doctorId: "1", name: "Mohan Singh", rating: 4, comment: "Good doctor, but waiting time is long. The treatment was effective though.", date: "2025-04-20" },
-  { id: "r4", doctorId: "2", name: "Pooja Shah", rating: 5, comment: "Dr. Priya is amazing! My skin has transformed completely after her treatment.", date: "2025-05-12" },
-  { id: "r5", doctorId: "2", name: "Neha Joshi", rating: 5, comment: "Best dermatologist in Mumbai. Very thorough consultation and brilliant results.", date: "2025-04-28" },
-];
+type Review = { id: number; authorName: string; rating: number; comment: string; createdAt: string; isVerifiedAppointment: boolean };
+type CompletedBooking = { id: number; doctorId: number; status: string };
 
 function SocialIcon({ platform, value, label }: { platform: string; value: string; label: string }) {
   const configs: Record<string, { icon: React.ReactNode; color: string; prefix: string }> = {
@@ -60,14 +55,29 @@ export default function DoctorProfile() {
   const { user, isLoaded } = useUser();
   const [saved, setSaved] = useState(false);
   const [saveBusy, setSaveBusy] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [completedBookings, setCompletedBookings] = useState<CompletedBooking[]>([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const [reviewNotice, setReviewNotice] = useState("");
 
   const { doctor, loading } = useDoctor(params?.id);
-  const reviews = REVIEWS.filter((r) => r.doctorId === params?.id);
 
   useEffect(() => {
     if (!isLoaded || !user || !params?.id) return;
     fetch("/api/me/saved-doctors").then((response) => response.ok ? response.json() : []).then((items: Array<{ id: string }>) => setSaved(items.some((item) => String(item.id) === params.id))).catch(() => undefined);
   }, [isLoaded, params?.id, user]);
+
+  useEffect(() => {
+    if (!params?.id) return;
+    fetch(`/api/doctors/${params.id}/reviews`).then((response) => response.ok ? response.json() : []).then(setReviews).catch(() => setReviews([]));
+  }, [params?.id]);
+
+  useEffect(() => {
+    if (!user || !params?.id) { setCompletedBookings([]); return; }
+    fetch("/api/me/bookings").then((response) => response.ok ? response.json() : []).then((bookings: CompletedBooking[]) => setCompletedBookings(bookings.filter((booking) => String(booking.doctorId) === params.id && booking.status === "completed"))).catch(() => setCompletedBookings([]));
+  }, [params?.id, user]);
 
   async function toggleSaved() {
     if (!doctor) return;
@@ -79,6 +89,22 @@ export default function DoctorProfile() {
     } finally {
       setSaveBusy(false);
     }
+  }
+
+  async function submitReview(event: React.FormEvent) {
+    event.preventDefault();
+    if (!doctor || !completedBookings.length || reviewComment.trim().length < 20) return;
+    setReviewBusy(true); setReviewNotice("");
+    try {
+      const response = await fetch(`/api/doctors/${doctor.id}/reviews`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rating: reviewRating, authorName: user?.fullName || "Medofile patient", comment: reviewComment.trim(), bookingId: completedBookings[0].id }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Your review could not be saved");
+      setReviewComment("");
+      setReviewNotice(result.moderation || "Thank you for sharing your experience.");
+      if (result.status === "published") setReviews((items) => [result, ...items]);
+    } catch (error) {
+      setReviewNotice(error instanceof Error ? error.message : "Your review could not be saved");
+    } finally { setReviewBusy(false); }
   }
 
   if (loading) return (
@@ -348,6 +374,15 @@ export default function DoctorProfile() {
                       <div className="text-xs text-muted-foreground mt-1">{doctor.reviewCount} reviews</div>
                     </div>
                   </div>
+                  {completedBookings.length > 0 && (
+                    <form onSubmit={submitReview} className="border-t border-border pt-4 mb-5">
+                      <p className="text-sm font-semibold text-foreground">Share your completed-appointment experience</p>
+                      <div className="flex gap-1 mt-2">{Array.from({ length: 5 }).map((_, index) => <button type="button" key={index} onClick={() => setReviewRating(index + 1)} className="p-1" aria-label={`${index + 1} stars`}><Star className={`w-5 h-5 ${index < reviewRating ? "text-yellow-400 fill-yellow-400" : "text-gray-200"}`} /></button>)}</div>
+                      <textarea value={reviewComment} onChange={(event) => setReviewComment(event.target.value)} minLength={20} maxLength={1200} placeholder="What would you like other patients to know? (20–1,200 characters)" className="w-full mt-2 rounded-xl border border-border p-3 text-sm min-h-24" />
+                      <div className="flex items-center justify-between gap-3 mt-2"><button disabled={reviewBusy || reviewComment.trim().length < 20} className="rounded-lg bg-primary text-white px-3 py-2 text-xs font-semibold disabled:opacity-50">{reviewBusy ? "Submitting…" : "Submit verified review"}</button>{reviewNotice && <p className="text-xs text-muted-foreground">{reviewNotice}</p>}</div>
+                    </form>
+                  )}
+                  {user && !completedBookings.length && <p className="text-xs text-muted-foreground border-t border-border pt-4 mb-4">Reviews are available after a completed appointment with this doctor.</p>}
                   {reviews.length === 0 ? (
                     <p className="text-muted-foreground text-sm">No reviews yet.</p>
                   ) : (
@@ -355,8 +390,8 @@ export default function DoctorProfile() {
                       {reviews.map((r) => (
                         <div key={r.id} className="pb-4 border-b border-border last:border-0 last:pb-0">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-sm text-foreground">{r.name}</span>
-                            <span className="text-xs text-muted-foreground">{r.date}</span>
+                            <span className="font-medium text-sm text-foreground">{r.authorName}{r.isVerifiedAppointment ? " · Verified appointment" : ""}</span>
+                            <span className="text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                           </div>
                           <div className="flex gap-0.5 mb-2">
                             {Array.from({ length: 5 }).map((_, i) => (

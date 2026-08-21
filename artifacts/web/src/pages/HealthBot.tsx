@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
+import { useUser } from "@clerk/react";
 import { Sparkles, Send, RefreshCw, Camera, FileText, ArrowLeft, X } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 
@@ -13,7 +14,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   isPrescription?: boolean;
-  suggestedDoctors?: Doctor[];
+  suggestedDoctors?: Array<Doctor & { reasons?: string[] }>;
 }
 
 const WELCOME: Message = {
@@ -68,14 +69,15 @@ function inferDoctorRequest(text: string): { spec: string[]; city: string } {
   return { spec: [spec], city };
 }
 
-async function fetchDoctorSuggestions(specializations: string[], city: string): Promise<Doctor[]> {
+async function fetchDoctorSuggestions(specializations: string[], city: string): Promise<Array<Doctor & { reasons?: string[] }>> {
   try {
     const params = new URLSearchParams();
     if (specializations.length) params.set("specializations", specializations.join(","));
     if (city) params.set("city", city);
-    const r = await fetch(`/api/doctors/suggestions?${params}`);
+    const r = await fetch(`/api/doctor-matches?${params}`);
     if (!r.ok) return [];
-    return await r.json() as Doctor[];
+    const payload = await r.json() as { data: Array<{ doctor: Doctor; reasons: string[] }> };
+    return payload.data.map((match) => ({ ...match.doctor, reasons: match.reasons }));
   } catch { return []; }
 }
 
@@ -126,6 +128,7 @@ function preparePrescriptionImage(file: File): Promise<string> {
 
 export default function HealthBot() {
   const [, navigate] = useLocation();
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -223,6 +226,9 @@ export default function HealthBot() {
             m.id === assistantId ? { ...m, content: parsed?.clean ?? accumulated.trim(), suggestedDoctors: docs } : m
           )
         );
+        if (user && accumulated.trim()) {
+          fetch("/api/me/timeline/ai-conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ summary: (parsed?.clean ?? accumulated).trim().slice(0, 1600) }) }).catch(() => undefined);
+        }
       } else if (!accumulated.trim()) {
         setMessages((prev) =>
           prev.map((m) => m.id === assistantId
@@ -351,6 +357,7 @@ export default function HealthBot() {
                             <div className="font-semibold text-sm text-foreground truncate">{doc.name}</div>
                             <div className="text-xs text-primary">{doc.specialization} · {doc.city}</div>
                             <div className="text-xs text-muted-foreground">₹{doc.fee} · ⭐ {doc.rating} · {doc.experience}y exp</div>
+                             {doc.reasons?.length ? <div className="text-[11px] text-teal-700 mt-1">{doc.reasons.slice(0, 2).join(" · ")}</div> : null}
                           </div>
                           <div className="bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0">
                             Book

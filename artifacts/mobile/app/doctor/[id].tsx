@@ -3,7 +3,7 @@ import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -19,13 +19,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RatingStars } from "@/components/RatingStars";
 import { useApp } from "@/context/AppContext";
-import { DOCTORS, REVIEWS } from "@/data/mockData";
+import { DOCTORS } from "@/data/mockData";
+import { API_BASE_URL } from "@/constants/api";
 import { useColors } from "@/hooks/useColors";
 
 const { width: SCREEN_W } = Dimensions.get("window");
 
 const TABS = ["Overview", "Reviews", "Services", "Gallery"] as const;
 type Tab = (typeof TABS)[number];
+type PublicReview = { id: string; patientName: string; rating: number; comment: string; date: string };
 
 const SOCIAL_ICONS: Record<string, { icon: string; color: string; label: string }> = {
   instagram: { icon: "logo-instagram", color: "#E1306C", label: "Instagram" },
@@ -48,14 +50,25 @@ export default function DoctorProfileScreen() {
   const { toggleSaveDoctor, isDoctorSaved } = useApp();
 
   const doctor = DOCTORS.find((d) => d.id === id) ?? DOCTORS[0];
-  const reviews = REVIEWS.filter((r) => r.doctorId === doctor.id);
   const saved = isDoctorSaved(doctor.id);
 
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
+  const [reviews, setReviews] = useState<PublicReview[]>([]);
   const scrollY = useRef(new Animated.Value(0)).current;
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API_BASE_URL}/doctors/${doctor.id}/reviews`)
+      .then((response) => response.ok ? response.json() : [])
+      .then((rows: Array<{ id: number; authorName: string; rating: number; comment: string; createdAt: string }>) => {
+        if (!cancelled) setReviews(rows.map((row) => ({ id: String(row.id), patientName: row.authorName, rating: row.rating, comment: row.comment, date: new Date(row.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) })));
+      })
+      .catch(() => !cancelled && setReviews([]));
+    return () => { cancelled = true; };
+  }, [doctor.id]);
 
   const headerOpacity = scrollY.interpolate({
     inputRange: [100, 180],

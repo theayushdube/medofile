@@ -1,8 +1,9 @@
 import { Router, type IRouter } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@workspace/db";
-import { bookings, doctors, patientProfiles, savedDoctors } from "@workspace/db/schema";
+import { bookings, careDocuments, careTimelineEvents, doctorFollowUps, doctors, patientProfiles, reminderPreferences, savedDoctors, scheduledReminders } from "@workspace/db/schema";
 import { requireUserAuth } from "../middleware/auth.js";
+import { scheduleInAppReminder } from "../services/reminderScheduler.js";
 
 const router: IRouter = Router();
 
@@ -114,6 +115,82 @@ router.get("/me/bookings", requireUserAuth, async (req, res): Promise<void> => {
   }
 });
 
+router.get("/me/timeline", requireUserAuth, async (req, res): Promise<void> => {
+  try {
+    const userId = req.medofileUserId!;
+    const [events, documents, followUps] = await Promise.all([
+      db.select().from(careTimelineEvents).where(eq(careTimelineEvents.patientClerkUserId, userId)).orderBy(desc(careTimelineEvents.createdAt)),
+      db.select().from(careDocuments).where(eq(careDocuments.patientClerkUserId, userId)).orderBy(desc(careDocuments.createdAt)),
+      db.select({ followUp: doctorFollowUps, doctor: doctors }).from(doctorFollowUps).innerJoin(doctors, eq(doctorFollowUps.doctorId, doctors.id)).where(eq(doctorFollowUps.patientClerkUserId, userId)).orderBy(desc(doctorFollowUps.createdAt)),
+    ]);
+    res.json({ events, documents, followUps: followUps.map(({ followUp, doctor }) => ({ ...followUp, doctor })) });
+  } catch {
+    res.status(500).json({ error: "Failed to load your care timeline" });
+  }
+});
+
+router.post("/me/documents", requireUserAuth, async (req, res): Promise<void> => {
+  const kind = String(req.body?.kind ?? "");
+  const title = String(req.body?.title ?? "").trim();
+  const note = String(req.body?.note ?? "").trim();
+  const fileUrl = String(req.body?.fileUrl ?? "").trim();
+  if (!["prescription", "report"].includes(kind) || !title || title.length > 120 || note.length > 1000) {
+    res.status(400).json({ error: "A valid document type, title, and concise note are required" });
+    return;
+  }
+  const [document] = await db.insert(careDocuments).values({ patientClerkUserId: req.medofileUserId!, kind, title, note, fileUrl }).returning();
+  await db.insert(careTimelineEvents).values({
+    patientClerkUserId: req.medofileUserId!,
+    type: kind === "prescription" ? "prescription_saved" : "report_saved",
+    title: kind === "prescription" ? "Prescription saved" : "Health report saved",
+    detail: title,
+  });
+  res.status(201).json(document);
+});
+
+router.post("/me/timeline/ai-conversations", requireUserAuth, async (req, res): Promise<void> => {
+  const summary = String(req.body?.summary ?? "").trim();
+  if (!summary || summary.length > 1600) {
+    res.status(400).json({ error: "A concise AI conversation summary is required" });
+    return;
+  }
+  const [event] = await db.insert(careTimelineEvents).values({
+    patientClerkUserId: req.medofileUserId!,
+    type: "ai_conversation",
+    title: "AI health conversation",
+    detail: summary,
+  }).returning();
+  res.status(201).json(event);
+});
+
+router.get("/me/reminder-preferences", requireUserAuth, async (req, res): Promise<void> => {
+  const userId = req.medofileUserId!;
+  await db.insert(reminderPreferences).values({ patientClerkUserId: userId }).onConflictDoNothing({ target: reminderPreferences.patientClerkUserId });
+  const [preferences] = await db.select().from(reminderPreferences).where(eq(reminderPreferences.patientClerkUserId, userId)).limit(1);
+  res.json(preferences);
+});
+
+router.put("/me/reminder-preferences", requireUserAuth, async (req, res): Promise<void> => {
+  const userId = req.medofileUserId!;
+  const source = req.body ?? {};
+  const updates = Object.fromEntries(
+    Object.entries(source).filter(([key, value]) =>
+      (["inApp", "email", "push", "whatsapp"].includes(key) && typeof value === "boolean") ||
+      (key === "reminderHours" && Number.isInteger(value) && Number(value) >= 1 && Number(value) <= 168),
+    ),
+  );
+  await db.insert(reminderPreferences).values({ patientClerkUserId: userId }).onConflictDoNothing({ target: reminderPreferences.patientClerkUserId });
+  const [preferences] = await db.update(reminderPreferences).set({ ...updates, updatedAt: new Date() }).where(eq(reminderPreferences.patientClerkUserId, userId)).returning();
+  if (preferences && updates.inApp === false) {
+    await db.update(scheduledReminders).set({ status: "skipped" }).where(and(eq(scheduledReminders.patientClerkUserId, userId), eq(scheduledReminders.status, "pending")));
+  }
+  if (preferences && (updates.inApp === true || typeof updates.reminderHours === "number")) {
+    const upcomingBookings = await db.select().from(bookings).where(and(eq(bookings.patientClerkUserId, userId), eq(bookings.status, "upcoming")));
+    await Promise.all(upcomingBookings.map((booking) => scheduleInAppReminder(booking)));
+  }
+  res.json(preferences);
+});
+
 router.get("/me/doctor/dashboard", requireUserAuth, async (req, res): Promise<void> => {
   try {
     const [doctor] = await db
@@ -200,7 +277,7 @@ router.put("/me/doctor/bookings/:id/status", requireUserAuth, async (req, res): 
     }
     const [updated] = await db
       .update(bookings)
-      .set({ status })
+      .set({ status, updatedAt: new Date() })
       .where(and(eq(bookings.id, bookingId), eq(bookings.doctorId, doctor.id)))
       .returning();
     if (!updated) {
@@ -211,6 +288,48 @@ router.put("/me/doctor/bookings/:id/status", requireUserAuth, async (req, res): 
   } catch {
     res.status(500).json({ error: "Failed to update booking" });
   }
+});
+
+router.post("/me/doctor/bookings/:id/follow-up", requireUserAuth, async (req, res): Promise<void> => {
+  const bookingId = Number(req.params.id);
+  const instructions = String(req.body?.instructions ?? "").trim();
+  if (!Number.isInteger(bookingId) || instructions.length < 10 || instructions.length > 2000) {
+    res.status(400).json({ error: "Care instructions must be between 10 and 2,000 characters" });
+    return;
+  }
+  const [doctor] = await db.select({ id: doctors.id }).from(doctors).where(eq(doctors.ownerClerkUserId, req.medofileUserId!)).limit(1);
+  const [booking] = doctor
+    ? await db.select().from(bookings).where(and(eq(bookings.id, bookingId), eq(bookings.doctorId, doctor.id))).limit(1)
+    : [];
+  if (!doctor || !booking || !booking.patientClerkUserId) {
+    res.status(404).json({ error: "A signed-in patient appointment is required for follow-up instructions" });
+    return;
+  }
+  if (booking.status !== "completed") {
+    res.status(400).json({ error: "Care instructions can be sent after a completed appointment" });
+    return;
+  }
+  const [existingFollowUp] = await db.select().from(doctorFollowUps).where(eq(doctorFollowUps.bookingId, bookingId)).limit(1);
+  const [followUp] = await db.insert(doctorFollowUps).values({
+    bookingId, doctorId: doctor.id, patientClerkUserId: booking.patientClerkUserId, instructions,
+  }).onConflictDoUpdate({
+    target: doctorFollowUps.bookingId,
+    set: { instructions, updatedAt: new Date() },
+  }).returning();
+  if (existingFollowUp) {
+    const [existingEvent] = await db.select().from(careTimelineEvents).where(and(eq(careTimelineEvents.bookingId, bookingId), eq(careTimelineEvents.type, "doctor_follow_up"))).orderBy(desc(careTimelineEvents.createdAt)).limit(1);
+    if (existingEvent) await db.update(careTimelineEvents).set({ detail: instructions }).where(eq(careTimelineEvents.id, existingEvent.id));
+  } else {
+    await db.insert(careTimelineEvents).values({
+      patientClerkUserId: booking.patientClerkUserId,
+      bookingId,
+      doctorId: doctor.id,
+      type: "doctor_follow_up",
+      title: "Care instructions from your doctor",
+      detail: instructions,
+    });
+  }
+  res.status(201).json(followUp);
 });
 
 export default router;

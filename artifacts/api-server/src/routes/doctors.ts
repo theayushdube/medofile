@@ -1,10 +1,11 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { doctors } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
+import { bookings, doctorReviews, doctors } from "@workspace/db/schema";
+import { and, desc, eq } from "drizzle-orm";
 import { getMedofileUserId, requireAuth, requireSuperAdmin, requireUserAuth } from "../middleware/auth.js";
 
 const router: IRouter = Router();
+const reviewAttempts = new Map<string, number>();
 type DoctorAnalytics = {
   impressions: number;
   profileViews: number;
@@ -74,6 +75,85 @@ router.get("/doctors/suggestions", async (req, res): Promise<void> => {
     res.json(result);
   } catch {
     res.status(500).json({ error: "Failed to fetch suggestions" });
+  }
+});
+
+router.get("/doctor-matches", async (req, res): Promise<void> => {
+  try {
+    const all = await db.select().from(doctors);
+    const specializations = String(req.query.specializations ?? "").toLowerCase().split(",").map((value) => value.trim()).filter(Boolean);
+    const city = String(req.query.city ?? "").trim().toLowerCase();
+    const language = String(req.query.language ?? "").trim().toLowerCase();
+    const maxFee = Number(req.query.maxFee);
+    const consultationType = String(req.query.consultationType ?? "").trim().toLowerCase();
+    const availability = String(req.query.availability ?? "").trim().toLowerCase();
+    const matches = all.map((doctor) => {
+      let score = Math.round(doctor.rating * 10);
+      const reasons: string[] = [];
+      if (specializations.some((specialization) => doctor.specialization.toLowerCase().includes(specialization))) {
+        score += 50; reasons.push(`Matches the care type you described (${doctor.specialization})`);
+      }
+      if (city && doctor.city.toLowerCase().includes(city)) { score += 20; reasons.push(`Practices in ${doctor.city}`); }
+      if (language && doctor.languages.some((item) => item.toLowerCase().includes(language))) { score += 15; reasons.push(`Speaks ${language}`); }
+      if (Number.isFinite(maxFee) && doctor.fee <= maxFee) { score += 12; reasons.push(`Within your ₹${maxFee.toLocaleString("en-IN")} budget`); }
+      if (consultationType && doctor.consultationTypes.includes(consultationType)) { score += 10; reasons.push(`${consultationType === "home" ? "Home visit" : "In-clinic"} care available`); }
+      if (availability === "available" && doctor.isAcceptingBookings) { score += 10; reasons.push("Currently accepting booking requests"); }
+      if (!reasons.length) reasons.push(`Highly rated ${doctor.specialization} on Medofile`);
+      return { doctor, score, reasons };
+    }).sort((left, right) => right.score - left.score).slice(0, 6);
+    res.json({ data: matches });
+  } catch {
+    res.status(500).json({ error: "Unable to find doctor matches" });
+  }
+});
+
+router.get("/doctors/:id/reviews", async (req, res): Promise<void> => {
+  const doctorId = Number(req.params.id);
+  const reviews = await db.select().from(doctorReviews).where(and(eq(doctorReviews.doctorId, doctorId), eq(doctorReviews.status, "published"))).orderBy(desc(doctorReviews.createdAt)).limit(40);
+  res.json(reviews);
+});
+
+router.post("/doctors/:id/reviews", requireUserAuth, async (req, res): Promise<void> => {
+  const doctorId = Number(req.params.id);
+  const rating = Number(req.body?.rating);
+  const authorName = String(req.body?.authorName ?? "").trim();
+  const comment = String(req.body?.comment ?? "").trim();
+  const bookingId = Number(req.body?.bookingId);
+  if (!Number.isInteger(doctorId) || !Number.isInteger(rating) || rating < 1 || rating > 5 || authorName.length < 2 || authorName.length > 80 || comment.length < 20 || comment.length > 1200 || /https?:\/\/|\b\d{10}\b/i.test(comment)) {
+    res.status(400).json({ error: "Please provide a respectful review without contact details or links" });
+    return;
+  }
+  const now = Date.now();
+  const clientKey = `${req.ip}:${doctorId}`;
+  if ((reviewAttempts.get(clientKey) ?? 0) > now - 60_000) {
+    res.status(429).json({ error: "Please wait a minute before submitting another review" });
+    return;
+  }
+  reviewAttempts.set(clientKey, now);
+  const userId = req.medofileUserId!;
+  const [doctor] = await db.select({ id: doctors.id }).from(doctors).where(eq(doctors.id, doctorId)).limit(1);
+  if (!doctor) { res.status(404).json({ error: "Doctor not found" }); return; }
+  const [verifiedBooking] = Number.isInteger(bookingId)
+    ? await db.select().from(bookings).where(and(eq(bookings.id, bookingId), eq(bookings.doctorId, doctorId), eq(bookings.patientClerkUserId, userId), eq(bookings.status, "completed"))).limit(1)
+    : [];
+  if (!verifiedBooking) {
+    res.status(403).json({ error: "Reviews are available after you complete an appointment with this doctor" });
+    return;
+  }
+  const isSuspicious = /\b(cure|guaranteed|fraud|scam|kill|hate)\b/i.test(comment);
+  try {
+    const [review] = await db.insert(doctorReviews).values({
+      doctorId, authorClerkUserId: userId, bookingId: verifiedBooking.id, authorName, rating, comment,
+      status: isSuspicious ? "pending" : "published", isVerifiedAppointment: true,
+    }).returning();
+    if (review!.status === "published") {
+      const published = await db.select({ rating: doctorReviews.rating }).from(doctorReviews).where(and(eq(doctorReviews.doctorId, doctorId), eq(doctorReviews.status, "published")));
+      const average = published.reduce((total, item) => total + item.rating, 0) / published.length;
+      await db.update(doctors).set({ rating: Math.round(average * 10) / 10, reviewCount: published.length, updatedAt: new Date() }).where(eq(doctors.id, doctorId));
+    }
+    res.status(201).json({ ...review, moderation: review!.status === "pending" ? "Your review is awaiting moderation." : "Your review is now public." });
+  } catch {
+    res.status(409).json({ error: "A verified appointment can only be reviewed once" });
   }
 });
 

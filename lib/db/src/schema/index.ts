@@ -5,3 +5,4 @@ export * from "./bookings";
 export * from "./adminUsers";
 export * from "./accounts";
 export * from "./blog";
+export * from "./care";

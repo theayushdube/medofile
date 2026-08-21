@@ -19,6 +19,9 @@ export const bookings = pgTable(
     fee: integer("fee").notNull().default(0),
     status: text("status").notNull().default("upcoming"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    rescheduledAt: timestamp("rescheduled_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   },
   (table) => [
     index("bookings_patient_clerk_user_idx").on(table.patientClerkUserId),
@@ -26,6 +29,6 @@ export const bookings = pgTable(
   ],
 );
 
-export const insertBookingSchema = createInsertSchema(bookings).omit({ id: true, createdAt: true });
+export const insertBookingSchema = createInsertSchema(bookings).omit({ id: true, createdAt: true, updatedAt: true, rescheduledAt: true, cancelledAt: true });
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;

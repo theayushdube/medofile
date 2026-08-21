@@ -268,13 +268,13 @@ export default function ProfileScreen() {
         <Text style={styles.sectionLabel}>Health</Text>
         <View style={styles.card}>
           <MenuItem icon="water-outline" label="Blood Group" value={patientProfile?.bloodGroup} />
-          <MenuItem icon="document-text-outline" label="Medical Records" onPress={() => showComingSoon("Medical Records")} />
-          <MenuItem icon="fitness-outline" label="Health Reports" onPress={() => showComingSoon("Health Reports")} />
+          <MenuItem icon="document-text-outline" label="Medical Records" onPress={() => router.push("/(patient)/care")} />
+          <MenuItem icon="fitness-outline" label="Health Reports" onPress={() => router.push("/(patient)/care")} />
         </View>
 
         <Text style={styles.sectionLabel}>Settings</Text>
         <View style={styles.card}>
-          <MenuItem icon="notifications-outline" label="Notifications" onPress={() => showComingSoon("Notifications")} />
+          <MenuItem icon="notifications-outline" label="Notifications & reminders" onPress={() => router.push("/(patient)/care")} />
           <MenuItem icon="lock-closed-outline" label="Privacy & Security" onPress={() => showComingSoon("Privacy & Security")} />
           <MenuItem icon="language-outline" label="Language" value="English" onPress={() => showComingSoon("Language")} />
           <MenuItem icon="help-circle-outline" label="Help & Support" onPress={() => showComingSoon("Help & Support")} />

@@ -53,7 +53,7 @@ export default function BookScreen() {
   const insets = useSafeAreaInsets();
   const { doctorId } = useLocalSearchParams<{ doctorId: string }>();
   const { addAppointment, patientProfile } = useApp();
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
 
   const doctor = DOCTORS.find((d) => d.id === doctorId) ?? DOCTORS[0];
 
@@ -105,23 +105,11 @@ export default function BookScreen() {
 
   async function confirmBooking() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    addAppointment({
-      doctorId: doctor.id,
-      patientName,
-      patientEmail,
-      patientPhone,
-      patientProblem,
-      date: selectedDate,
-      time: selectedTime!,
-      type: consultType,
-      status: "upcoming",
-      branch: consultType === "clinic" ? doctor.branches[selectedBranch]?.name : undefined,
-      fee: doctor.fee,
-      notes: patientProblem || undefined,
-    });
+    let backendId: string | undefined;
+    let bookingSaved = false;
     try {
       const token = await getToken();
-      await fetch(`${API_BASE_URL}/bookings`, {
+      const response = await fetch(`${API_BASE_URL}/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
@@ -137,7 +125,33 @@ export default function BookScreen() {
           fee: doctor.fee,
         }),
       });
-    } catch {}
+      if (response.ok) {
+        const created = await response.json();
+        backendId = String(created.id);
+        bookingSaved = true;
+      }
+    } catch {
+      // Guests keep a local appointment if the network is unavailable.
+    }
+    if (isSignedIn && !bookingSaved) {
+      Alert.alert("Booking not confirmed", "We could not save this appointment. Please check your connection and try again.");
+      return;
+    }
+    addAppointment({
+      id: backendId,
+      doctorId: doctor.id,
+      patientName,
+      patientEmail,
+      patientPhone,
+      patientProblem,
+      date: selectedDate,
+      time: selectedTime!,
+      type: consultType,
+      status: "upcoming",
+      branch: consultType === "clinic" ? doctor.branches[selectedBranch]?.name : undefined,
+      fee: doctor.fee,
+      notes: patientProblem || undefined,
+    });
     Alert.alert(
       "Appointment Confirmed!",
       `Your appointment with ${doctor.name} is confirmed for ${selectedDate} at ${selectedTime}.\n\nA confirmation has been sent to ${patientEmail}.`,
