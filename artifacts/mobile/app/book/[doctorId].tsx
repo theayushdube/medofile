@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { DOCTORS, TIME_SLOTS } from "@/data/mockData";
 import { useColors } from "@/hooks/useColors";
+import { API_BASE_URL } from "@/constants/api";
 
 type ConsultType = "clinic" | "home";
 
@@ -117,10 +118,7 @@ export default function BookScreen() {
       notes: patientProblem || undefined,
     });
     try {
-      const apiBase = process.env.EXPO_PUBLIC_DOMAIN
-        ? `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`
-        : "/api";
-      await fetch(`${apiBase}/bookings`, {
+      await fetch(`${API_BASE_URL}/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

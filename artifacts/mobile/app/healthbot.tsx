@@ -20,6 +20,7 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
+import { API_BASE_URL } from "@/constants/api";
 
 interface Doctor {
   id: number; name: string; specialization: string; avatar: string;
@@ -49,10 +50,6 @@ const QUICK_PROMPTS = [
   "Back pain after long sitting",
   "I feel anxious and stressed",
 ];
-
-const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
-  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`
-  : "/api";
 
 function parseDoctorTag(text: string): { clean: string; spec: string[]; city: string } | null {
   const match = text.match(/<doctors>\s*([\s\S]*?)\s*<\/doctors>/i);
@@ -96,7 +93,7 @@ async function fetchDoctorSuggestions(specializations: string[], city: string): 
     const params = new URLSearchParams();
     if (specializations.length) params.set("specializations", specializations.join(","));
     if (city) params.set("city", city);
-    const r = await fetch(`${API_BASE}/doctors/suggestions?${params}`);
+    const r = await fetch(`${API_BASE_URL}/doctors/suggestions?${params}`);
     if (!r.ok) return [];
     return await r.json() as Doctor[];
   } catch { return []; }
@@ -139,11 +136,11 @@ export default function HealthBotScreen() {
       abortRef.current = false;
 
       try {
-        let endpoint = `${API_BASE}/chat`;
+        let endpoint = `${API_BASE_URL}/chat`;
         let body: object;
 
         if (imageBase64) {
-          endpoint = `${API_BASE}/chat/prescription`;
+          endpoint = `${API_BASE_URL}/chat/prescription`;
           body = { imageBase64 };
         } else {
           const history = messages.map((m) => ({ role: m.role, content: m.content }));

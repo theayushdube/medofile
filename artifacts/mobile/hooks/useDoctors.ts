@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/constants/api";
 import type { Doctor } from "@/data/mockData";
-
-const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
-  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`
-  : "/api";
 
 interface ApiDoctor {
   id: number;
@@ -74,7 +71,7 @@ export function useDoctors() {
     }
     let cancelled = false;
     setLoading(true);
-    fetch(`${API_BASE}/doctors`)
+    fetch(`${API_BASE_URL}/doctors`)
       .then((r) => (r.ok ? r.json() : []))
       .then((data: ApiDoctor[]) => {
         if (!cancelled) {
@@ -115,7 +112,7 @@ export function useDoctor(id: string | undefined) {
     }
     let cancelled = false;
     setLoading(true);
-    fetch(`${API_BASE}/doctors/${id}`)
+    fetch(`${API_BASE_URL}/doctors/${id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: ApiDoctor | null) => {
         if (!cancelled) {
