@@ -1,0 +1,12 @@
+export default function PrescriptionUnderstanding() {
+  return (
+    <div className="relative w-screen h-screen overflow-hidden bg-bg px-[4vw] py-[4vh] font-body text-text">
+      <div className="flex items-center justify-between border-b border-slate-200 pb-[2vh]"><div className="flex items-center gap-[1vw]"><div className="h-[2.1vw] w-[2.1vw] rounded-[0.45vw] bg-accent" /><p className="font-display text-[1.3vw] font-extrabold">medofile</p></div><p className="text-[1vw] font-bold tracking-[0.08em] text-muted">PRESCRIPTION READING</p></div>
+      <div className="grid h-[76vh] grid-cols-[1.1fr_0.9fr] gap-[4vw] pt-[5vh]">
+        <div><p className="text-[1.2vw] font-bold tracking-[0.12em] text-accent">CONCISE BY DESIGN</p><h1 className="mt-[1vh] max-w-[55vw] font-display text-[4.4vw] font-extrabold leading-[1.08] tracking-[-0.045em]">Prescription understanding, without the noise</h1><div className="mt-[4vh] grid grid-cols-2 gap-[1.5vw]"><div className="rounded-[1vw] border border-slate-200 bg-white p-[1.7vw]"><p className="text-[1.7vw] font-semibold leading-[1.3]">Extracts medicine names from a prescription image</p></div><div className="rounded-[1vw] border border-slate-200 bg-white p-[1.7vw]"><p className="text-[1.7vw] font-semibold leading-[1.3]">Groups medicines by general category when readable</p></div><div className="rounded-[1vw] border border-slate-200 bg-white p-[1.7vw]"><p className="text-[1.7vw] font-semibold leading-[1.3]">Shows only clearly visible instructions</p></div><div className="rounded-[1vw] border border-slate-200 bg-white p-[1.7vw]"><p className="text-[1.7vw] font-semibold leading-[1.3]">Ends with a reminder to confirm with a doctor or pharmacist</p></div></div></div>
+        <div className="my-[4vh] rounded-[1.2vw] bg-text p-[2.4vw] text-white"><p className="text-[1.15vw] font-bold tracking-[0.12em] text-teal-300">SAFETY BOUNDARY</p><p className="mt-[2vh] font-display text-[2.8vw] font-bold leading-[1.18]">Avoids dosage, treatment, interaction, and diagnosis advice</p></div>
+      </div>
+      <div className="flex justify-between border-t border-slate-200 pt-[1.6vh] text-[1vw] font-medium text-slate-400"><span>Medofile Overview</span><span>05 / 08</span></div>
+    </div>
+  );
+}

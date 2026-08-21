@@ -1,1 +1,10 @@
-[]
+[
+  { "id": "6f8dd2b5-48ee-4e8e-91ca-6055b40b4a01", "position": 1, "filepath": "src/pages/slides/MedofileTitle.tsx", "title": "Medofile", "description": "A connected healthcare experience for patients and doctors", "speakerNotes": "" },
+  { "id": "59140d2e-cfbc-48df-b1d8-a94d9c909b02", "position": 2, "filepath": "src/pages/slides/FragmentedJourneys.tsx", "title": "Healthcare journeys are fragmented", "description": "The patient experience problems Medofile addresses", "speakerNotes": "" },
+  { "id": "814cf014-2843-4d04-bfc4-6d18c55fe103", "position": 3, "filepath": "src/pages/slides/CarePlatform.tsx", "title": "One platform for the next step in care", "description": "The connected patient journey", "speakerNotes": "" },
+  { "id": "c1bd38d2-31e2-4dbf-ae76-e0b7788f4c04", "position": 4, "filepath": "src/pages/slides/HealthAssistant.tsx", "title": "AI Health Assistant", "description": "Guidance, specialist matching, and streamed recommendations", "speakerNotes": "" },
+  { "id": "a3d24f18-03a6-4ac1-91c5-ef59f24f7d05", "position": 5, "filepath": "src/pages/slides/PrescriptionUnderstanding.tsx", "title": "Prescription understanding, without the noise", "description": "Concise prescription reading with clear safety boundaries", "speakerNotes": "" },
+  { "id": "2e20f6e6-9ed3-43f2-817a-dc0e2e9a0b06", "position": 6, "filepath": "src/pages/slides/SharedProfiles.tsx", "title": "Doctor profiles are the shared source of truth", "description": "Shared doctor records across every patient touchpoint", "speakerNotes": "" },
+  { "id": "b47a5d30-47c9-49a7-8db9-7d7bfd1d1707", "position": 7, "filepath": "src/pages/slides/Architecture.tsx", "title": "Built across web, mobile, and API services", "description": "Medofile's connected application architecture", "speakerNotes": "" },
+  { "id": "d3c0624c-a5d0-4fbb-91db-a0ee7d756608", "position": 8, "filepath": "src/pages/slides/ConnectedCare.tsx", "title": "A safer, more connected care experience", "description": "The product direction and next focus areas", "speakerNotes": "" }
+]
