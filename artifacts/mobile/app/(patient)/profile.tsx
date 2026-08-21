@@ -177,6 +177,38 @@ export default function ProfileScreen() {
       borderTopWidth: 1,
       borderTopColor: colors.border,
     },
+    guestCard: {
+      margin: 16,
+      padding: 18,
+      borderRadius: 16,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    guestTitle: {
+      fontSize: 16,
+      fontFamily: "Inter_700Bold",
+      color: colors.foreground,
+    },
+    guestDescription: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.mutedForeground,
+      fontFamily: "Inter_400Regular",
+      marginTop: 6,
+    },
+    guestButton: {
+      marginTop: 16,
+      paddingVertical: 12,
+      borderRadius: 12,
+      backgroundColor: colors.primary,
+      alignItems: "center",
+    },
+    guestButtonText: {
+      fontSize: 14,
+      fontFamily: "Inter_600SemiBold",
+      color: "#fff",
+    },
   });
 
   return (
@@ -194,8 +226,8 @@ export default function ProfileScreen() {
           <View style={styles.avatarCircle}>
             <Ionicons name="person" size={44} color="rgba(255,255,255,0.9)" />
           </View>
-          <Text style={styles.name}>{patientProfile?.name ?? "Patient"}</Text>
-          <Text style={styles.phone}>{patientProfile?.phone ?? ""}</Text>
+          <Text style={styles.name}>{patientProfile?.name ?? "Welcome to Medofile"}</Text>
+          <Text style={styles.phone}>{patientProfile?.phone ?? "Browse doctors and care options as a guest"}</Text>
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
               <Text style={styles.statNum}>{appointments.length}</Text>
@@ -212,14 +244,26 @@ export default function ProfileScreen() {
           </View>
         </LinearGradient>
 
-        <Text style={styles.sectionLabel}>Personal Details</Text>
-        <View style={styles.card}>
-          <MenuItem icon="person-outline" label="Full Name" value={patientProfile?.name} />
-          <MenuItem icon="call-outline" label="Phone" value={patientProfile?.phone} />
-          <MenuItem icon="mail-outline" label="Email" value={patientProfile?.email} />
-          <MenuItem icon="transgender-outline" label="Gender" value={patientProfile?.gender} />
-          <MenuItem icon="calendar-outline" label="Age" value={patientProfile?.age?.toString()} />
-        </View>
+        {patientProfile ? (
+          <>
+            <Text style={styles.sectionLabel}>Personal Details</Text>
+            <View style={styles.card}>
+              <MenuItem icon="person-outline" label="Full Name" value={patientProfile.name} />
+              <MenuItem icon="call-outline" label="Phone" value={patientProfile.phone} />
+              <MenuItem icon="mail-outline" label="Email" value={patientProfile.email} />
+              <MenuItem icon="transgender-outline" label="Gender" value={patientProfile.gender} />
+              <MenuItem icon="calendar-outline" label="Age" value={patientProfile.age.toString()} />
+            </View>
+          </>
+        ) : (
+          <View style={styles.guestCard}>
+            <Text style={styles.guestTitle}>Create your Medofile profile</Text>
+            <Text style={styles.guestDescription}>Save your details to manage appointments and make booking quicker. You can continue browsing without an account.</Text>
+            <Pressable style={styles.guestButton} onPress={() => router.push("/register")}>
+              <Text style={styles.guestButtonText}>Register or continue as a doctor</Text>
+            </Pressable>
+          </View>
+        )}
 
         <Text style={styles.sectionLabel}>Health</Text>
         <View style={styles.card}>
@@ -237,10 +281,14 @@ export default function ProfileScreen() {
           <MenuItem icon="information-circle-outline" label="About Medofile" onPress={() => showComingSoon("About Medofile")} />
         </View>
 
-        <Text style={styles.sectionLabel}></Text>
-        <View style={styles.card}>
-          <MenuItem icon="log-out-outline" label="Sign Out" onPress={handleLogout} danger />
-        </View>
+        {patientProfile && (
+          <>
+            <Text style={styles.sectionLabel}></Text>
+            <View style={styles.card}>
+              <MenuItem icon="log-out-outline" label="Sign Out" onPress={handleLogout} danger />
+            </View>
+          </>
+        )}
       </ScrollView>
     </View>
   );
