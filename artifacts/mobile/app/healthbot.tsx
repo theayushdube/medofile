@@ -72,6 +72,25 @@ function parseDoctorTag(text: string): { clean: string; spec: string[]; city: st
   } catch { return null; }
 }
 
+function inferDoctorRequest(text: string): { spec: string[]; city: string } {
+  const value = text.toLowerCase();
+  const rules: Array<[string[], string]> = [
+    [["skin", "rash", "acne", "pimple", "itch"], "Dermatologist"],
+    [["child", "baby", "kid", "pediatric", "infant"], "Pediatrician"],
+    [["heart", "chest pain", "blood pressure", "palpitation"], "Cardiologist"],
+    [["headache", "migraine", "seizure", "nerve"], "Neurologist"],
+    [["bone", "joint", "back pain", "knee", "fracture"], "Orthopedic"],
+    [["eye", "vision", "glasses"], "Ophthalmologist"],
+    [["tooth", "teeth", "gum", "dental"], "Dentist"],
+    [["anxiety", "depression", "panic", "stress"], "Psychiatrist"],
+    [["ear", "nose", "throat", "sinus"], "ENT Specialist"],
+    [["period", "pregnan", "ovary", "menstrual"], "Gynecologist"],
+  ];
+  const spec = rules.find(([keywords]) => keywords.some((keyword) => value.includes(keyword)))?.[1] ?? "General Physician";
+  const city = text.match(/\bin\s+([A-Za-z][A-Za-z .'-]{2,30})/i)?.[1]?.trim() ?? "";
+  return { spec: [spec], city };
+}
+
 async function fetchDoctorSuggestions(specializations: string[], city: string): Promise<Doctor[]> {
   try {
     const params = new URLSearchParams();
@@ -176,12 +195,15 @@ export default function HealthBotScreen() {
         }
 
         const parsed = parseDoctorTag(accumulated);
-        if (parsed && !imageBase64) {
-          const docs = await fetchDoctorSuggestions(parsed.spec, parsed.city);
+        if (!imageBase64) {
+          const inferred = inferDoctorRequest(trimmed);
+          const request = parsed && parsed.spec.length ? parsed : inferred;
+          let docs = await fetchDoctorSuggestions(request.spec, request.city);
+          if (!docs.length && request.city) docs = await fetchDoctorSuggestions(request.spec, "");
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
-                ? { ...m, content: parsed.clean, suggestedDoctors: docs }
+                ? { ...m, content: parsed?.clean ?? accumulated.trim(), suggestedDoctors: docs }
                 : m
             )
           );

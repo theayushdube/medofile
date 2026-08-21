@@ -235,7 +235,6 @@ export default function ProfileScreen() {
           <MenuItem icon="language-outline" label="Language" value="English" onPress={() => showComingSoon("Language")} />
           <MenuItem icon="help-circle-outline" label="Help & Support" onPress={() => showComingSoon("Help & Support")} />
           <MenuItem icon="information-circle-outline" label="About Medofile" onPress={() => showComingSoon("About Medofile")} />
-          <MenuItem icon="person-add-outline" label="Register as a Doctor" onPress={() => router.push("/register")} />
         </View>
 
         <Text style={styles.sectionLabel}></Text>

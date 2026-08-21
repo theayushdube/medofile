@@ -105,27 +105,24 @@ router.post("/chat/prescription", async (req, res): Promise<void> => {
   try {
     const stream = await openai.chat.completions.create({
       model: "gpt-5-mini",
-      max_completion_tokens: 8192,
+          max_completion_tokens: 700,
       stream: true,
       messages: [
         {
           role: "system",
-          content: `You are a medical prescription reader for Medofile in India. 
-          When given a prescription image:
-          1. If clearly readable: List the medicines, their general purpose (e.g. "antibiotic", "painkiller"), and any visible instructions. Do NOT suggest dosages or recommend taking them.
-          2. If partially readable: Share what you can read and note what is unclear.
-          3. If not readable at all: Say the image is not clear enough.
-          
-          IMPORTANT: Always end with: "Please consult your doctor or a licensed pharmacist before taking any medication."
-          NEVER suggest the patient take or not take any specific medication.
-          NEVER provide medical advice based on the prescription.`
+          content: `You read prescription images for Medofile. Be concise and factual.
+Return only:
+1. "Medicines found:" followed by up to 8 bullets in the format "- medicine name — general category"
+2. "Visible instructions:" followed by only instructions that are clearly readable, or "None clearly readable."
+3. One short line: "Please confirm medicines and instructions with your doctor or pharmacist."
+If the image is unclear, say so in one sentence. Do not provide diagnosis, treatment advice, dosage advice, side effects, interactions, warnings, or extra medical background. Never tell the patient to start or stop a medicine.`
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: "Please analyze this prescription image and tell me what medicines are listed and their general category."
+              text: "Extract only the medicine names, general categories, and clearly visible instructions from this prescription."
             },
             {
               type: "image_url",
