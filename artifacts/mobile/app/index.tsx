@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef } from "react";
@@ -44,7 +45,7 @@ export default function SplashScreen() {
     >
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
         <View style={styles.logoCircle}>
-          <Ionicons name="medical" size={44} color="#1B72E8" />
+          <Image source={require("@/assets/images/icon.png")} style={styles.logoImage} contentFit="contain" />
         </View>
 
         <Text style={styles.appName}>Medofile</Text>
@@ -90,6 +91,10 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 12,
     marginBottom: 8,
+  },
+  logoImage: {
+    width: 86,
+    height: 86,
   },
   appName: {
     fontSize: 38,
