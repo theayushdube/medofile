@@ -9,6 +9,10 @@ import { JWT_SECRET } from "../middleware/auth.js";
 const router: IRouter = Router();
 
 router.post("/auth/login", async (req, res): Promise<void> => {
+  if (!JWT_SECRET) {
+    res.status(503).json({ error: "Admin authentication is not configured" });
+    return;
+  }
   const { username, password } = req.body;
   if (!username || !password) {
     res.status(400).json({ error: "Username and password required" });
@@ -33,6 +37,10 @@ router.post("/auth/login", async (req, res): Promise<void> => {
 });
 
 router.get("/auth/me", async (req, res): Promise<void> => {
+  if (!JWT_SECRET) {
+    res.status(503).json({ error: "Admin authentication is not configured" });
+    return;
+  }
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) { res.status(401).json({ error: "Unauthorized" }); return; }
   try {

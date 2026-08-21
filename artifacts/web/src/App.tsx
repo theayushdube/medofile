@@ -17,6 +17,8 @@ const HealthBot = lazy(() => import("@/pages/HealthBot"));
 const Register = lazy(() => import("@/pages/Register"));
 const DoctorProfileManager = lazy(() => import("@/pages/DoctorProfileManager"));
 const Account = lazy(() => import("@/pages/Account"));
+const BlogIndex = lazy(() => import("@/pages/BlogIndex"));
+const BlogArticle = lazy(() => import("@/pages/BlogArticle"));
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -53,6 +55,8 @@ function Router() {
         <Route path="/healthbot" component={HealthBot} />
         <Route path="/register" component={Register} />
         <Route path="/account" component={Account} />
+        <Route path="/blog" component={BlogIndex} />
+        <Route path="/blog/:slug" component={BlogArticle} />
         <Route path="/sign-in/*?">{() => <div className="min-h-screen bg-background flex items-center justify-center px-4"><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /></div>}</Route>
         <Route path="/sign-up/*?">{() => <div className="min-h-screen bg-background flex items-center justify-center px-4"><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} /></div>}</Route>
         <Route path="/doctor-profile/manage/:id" component={DoctorProfileManager} />

@@ -6,6 +6,7 @@ import doctorsRouter from "./doctors.js";
 import bookingsRouter from "./bookings.js";
 import adminUsersRouter from "./adminUsersRoute.js";
 import accountsRouter from "./accounts.js";
+import blogRouter from "./blog.js";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(doctorsRouter);
 router.use(bookingsRouter);
 router.use(adminUsersRouter);
 router.use(accountsRouter);
+router.use(blogRouter);
 
 export default router;

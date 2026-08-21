@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { getAuth } from "@clerk/express";
 
-const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || "medofile_jwt_secret_2026";
+const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET;
 
 export interface AdminAuthPayload {
   id: number;
@@ -34,6 +34,10 @@ export function requireUserAuth(req: Request, res: Response, next: NextFunction)
 }
 
 export function requireAdminAuth(req: Request, res: Response, next: NextFunction): void {
+  if (!JWT_SECRET) {
+    res.status(503).json({ error: "Admin authentication is not configured" });
+    return;
+  }
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) {
     res.status(401).json({ error: "Unauthorized" });

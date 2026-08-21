@@ -6,6 +6,7 @@ import { publishableKeyFromHost } from "@clerk/shared/keys";
 import router from "./routes/index.js";
 import { logger } from "./lib/logger.js";
 import { seedIfEmpty } from "./seed.js";
+import { startBlogScheduler } from "./services/blogPublisher.js";
 import {
   CLERK_PROXY_PATH,
   clerkProxyMiddleware,
@@ -49,5 +50,6 @@ app.use(
 app.use("/api", router);
 
 seedIfEmpty();
+startBlogScheduler();
 
 export default app;

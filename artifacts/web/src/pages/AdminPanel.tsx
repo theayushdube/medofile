@@ -3,10 +3,11 @@ import { useLocation } from "wouter";
 import {
   Shield, Users, Calendar, TrendingUp, Search, Eye, Phone, Plus, Trash2,
   Star, CheckCircle, XCircle, BarChart2, MessageCircle, Navigation, Edit,
-  LogOut, UserCog, AlertTriangle, X, Save, ChevronRight
+  LogOut, UserCog, AlertTriangle, X, Save, ChevronRight, FileText
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { Navbar } from "@/components/Navbar";
+import { AdminBlogManager } from "@/components/AdminBlogManager";
 
 const API_BASE = "/api";
 
@@ -35,7 +36,7 @@ interface Booking {
 interface AdminUser { id: number; username: string; role: string; createdAt: string; }
 interface AuthData { token: string; user: { id: number; username: string; role: string; } }
 
-type AdminTab = "overview" | "doctors" | "bookings" | "analytics" | "users";
+type AdminTab = "overview" | "doctors" | "bookings" | "analytics" | "blog" | "users";
 
 const SPECIALIZATIONS = ["Cardiologist","Dermatologist","Neurologist","Orthopedic","Pediatrician","Gynecologist","Dentist","General Physician","Ophthalmologist","Psychiatrist","ENT Specialist","Oncologist"];
 const CITIES = ["New Delhi","Mumbai","Bengaluru","Hyderabad","Kolkata","Gurugram","Chennai","Pune"];
@@ -215,6 +216,7 @@ export default function AdminPanel() {
     { key: "doctors" as AdminTab, label: "Doctors", icon: <Users className="w-4 h-4" /> },
     { key: "bookings" as AdminTab, label: "Bookings", icon: <Calendar className="w-4 h-4" /> },
     { key: "analytics" as AdminTab, label: "Analytics", icon: <TrendingUp className="w-4 h-4" /> },
+    { key: "blog" as AdminTab, label: "Health guides", icon: <FileText className="w-4 h-4" /> },
     { key: "users" as AdminTab, label: "Users", icon: <UserCog className="w-4 h-4" />, superOnly: true },
   ];
   const tabs = allTabs.filter(t => !t.superOnly || isSuperAdmin);
@@ -512,6 +514,7 @@ export default function AdminPanel() {
             </div>
           </div>
         )}
+        {activeTab === "blog" && <AdminBlogManager token={auth.token} />}
 
         {activeTab === "users" && isSuperAdmin && (
           <div className="space-y-6">

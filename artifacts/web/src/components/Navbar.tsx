@@ -35,6 +35,9 @@ export function Navbar() {
             <Sparkles className="w-3.5 h-3.5" />
             AI Assistant
           </button>
+          <button onClick={() => navigate("/blog")} className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+            Health Guides
+          </button>
           {isLoaded && user ? <>
             <button onClick={() => navigate("/account")} className="flex items-center gap-1.5 text-primary text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary/10 transition-colors"><UserRound className="w-4 h-4" /> My care</button>
             <button onClick={() => signOut({ redirectUrl: import.meta.env.BASE_URL.replace(/\/$/, "") || "/" })} className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">Sign out</button>
@@ -63,6 +66,7 @@ export function Navbar() {
             { label: "Find Doctors", href: "/doctors" },
             { label: "Specialists", href: "/doctors" },
             { label: "AI Health Assistant", href: "/healthbot" },
+            { label: "Health Guides", href: "/blog" },
           ].map((item) => (
             <button
               key={item.label}
