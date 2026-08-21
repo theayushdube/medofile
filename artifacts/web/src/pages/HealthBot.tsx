@@ -32,14 +32,19 @@ const QUICK_PROMPTS = [
 ];
 
 function parseDoctorTag(text: string): { clean: string; spec: string[]; city: string } | null {
-  const match = text.match(/<doctors>([\s\S]*?)<\/doctors>/);
+  const match = text.match(/<doctors>\s*([\s\S]*?)\s*<\/doctors>/i);
   if (!match) return null;
   try {
-    const data = JSON.parse(match[1]);
+    const data = JSON.parse(match[1].replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, ""));
+    const rawSpecs = Array.isArray(data.specializations)
+      ? data.specializations
+      : typeof data.specializations === "string"
+        ? data.specializations.split(",")
+        : [];
     return {
-      clean: text.replace(/<doctors>[\s\S]*?<\/doctors>/, "").trim(),
-      spec: data.specializations || [],
-      city: data.city || "",
+      clean: text.replace(/<doctors>[\s\S]*?<\/doctors>/i, "").trim() || "Here are some specialists who may be able to help:",
+      spec: rawSpecs.map((s: unknown) => String(s).trim()).filter(Boolean),
+      city: typeof data.city === "string" ? data.city.trim() : "",
     };
   } catch { return null; }
 }
@@ -125,23 +130,30 @@ export default function HealthBot() {
       const decoder = new TextDecoder();
       let accumulated = "";
 
+      let pending = "";
+      const processSseLine = (line: string) => {
+        if (!line.startsWith("data: ")) return;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.content) {
+            accumulated += data.content;
+            setMessages((prev) =>
+              prev.map((m) => m.id === assistantId ? { ...m, content: accumulated } : m)
+            );
+          }
+        } catch {}
+      };
+
       while (true) {
         if (abortRef.current) { reader.cancel(); break; }
         const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        for (const line of chunk.split("\n")) {
-          if (!line.startsWith("data: ")) continue;
-          try {
-            const data = JSON.parse(line.slice(6));
-            if (data.done) break;
-            if (data.content) {
-              accumulated += data.content;
-              setMessages((prev) =>
-                prev.map((m) => m.id === assistantId ? { ...m, content: accumulated } : m)
-              );
-            }
-          } catch {}
+        pending += decoder.decode(value ?? new Uint8Array(), { stream: !done });
+        const lines = pending.split(/\r?\n/);
+        pending = lines.pop() ?? "";
+        for (const line of lines) processSseLine(line);
+        if (done) {
+          if (pending) processSseLine(pending);
+          break;
         }
       }
 
@@ -152,6 +164,14 @@ export default function HealthBot() {
           prev.map((m) =>
             m.id === assistantId ? { ...m, content: parsed.clean, suggestedDoctors: docs } : m
           )
+        );
+      } else if (!accumulated.trim()) {
+        setMessages((prev) =>
+          prev.map((m) => m.id === assistantId
+            ? { ...m, content: imageDataUrl
+              ? "I couldn't read a usable result from that prescription image. Please upload a clear, well-lit photo with the full prescription visible."
+              : "I didn't receive a readable response. Please try again." }
+            : m)
         );
       }
     } catch {

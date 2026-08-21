@@ -25,8 +25,10 @@ export default function SplashScreen() {
       const timer = setTimeout(() => {
         if (userRole === "doctor") {
           router.replace("/(doctor)/dashboard");
-        } else {
+        } else if (userRole === "patient") {
           router.replace("/(patient)/home");
+        } else {
+          router.replace("/register");
         }
       }, 1500);
       return () => clearTimeout(timer);

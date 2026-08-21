@@ -24,6 +24,7 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
+      <Stack.Screen name="register" options={{ headerShown: false }} />
       <Stack.Screen name="(patient)" />
       <Stack.Screen name="(doctor)" />
       <Stack.Screen

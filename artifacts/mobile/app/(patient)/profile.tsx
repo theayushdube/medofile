@@ -89,6 +89,10 @@ export default function ProfileScreen() {
 
   const completedCount = appointments.filter((a) => a.status === "completed").length;
 
+  function showComingSoon(label: string) {
+    Alert.alert(label, "This section will be available in a future update.");
+  }
+
   function handleLogout() {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
       { text: "Cancel", style: "cancel" },
@@ -220,17 +224,17 @@ export default function ProfileScreen() {
         <Text style={styles.sectionLabel}>Health</Text>
         <View style={styles.card}>
           <MenuItem icon="water-outline" label="Blood Group" value={patientProfile?.bloodGroup} />
-          <MenuItem icon="document-text-outline" label="Medical Records" />
-          <MenuItem icon="fitness-outline" label="Health Reports" />
+          <MenuItem icon="document-text-outline" label="Medical Records" onPress={() => showComingSoon("Medical Records")} />
+          <MenuItem icon="fitness-outline" label="Health Reports" onPress={() => showComingSoon("Health Reports")} />
         </View>
 
         <Text style={styles.sectionLabel}>Settings</Text>
         <View style={styles.card}>
-          <MenuItem icon="notifications-outline" label="Notifications" />
-          <MenuItem icon="lock-closed-outline" label="Privacy & Security" />
-          <MenuItem icon="language-outline" label="Language" value="English" />
-          <MenuItem icon="help-circle-outline" label="Help & Support" />
-          <MenuItem icon="information-circle-outline" label="About Medofile" />
+          <MenuItem icon="notifications-outline" label="Notifications" onPress={() => showComingSoon("Notifications")} />
+          <MenuItem icon="lock-closed-outline" label="Privacy & Security" onPress={() => showComingSoon("Privacy & Security")} />
+          <MenuItem icon="language-outline" label="Language" value="English" onPress={() => showComingSoon("Language")} />
+          <MenuItem icon="help-circle-outline" label="Help & Support" onPress={() => showComingSoon("Help & Support")} />
+          <MenuItem icon="information-circle-outline" label="About Medofile" onPress={() => showComingSoon("About Medofile")} />
         </View>
 
         <Text style={styles.sectionLabel}></Text>

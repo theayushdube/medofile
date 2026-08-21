@@ -1,7 +1,5 @@
 import { Router, type IRouter } from "express";
 import { openai } from "@workspace/integrations-openai-ai-server";
-import { db } from "@workspace/db";
-import { doctors } from "@workspace/db/schema";
 
 const router: IRouter = Router();
 
@@ -54,6 +52,7 @@ router.post("/chat", async (req, res): Promise<void> => {
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
   res.setHeader("Access-Control-Allow-Origin", "*");
+  res.flushHeaders?.();
 
   const systemContent = userLocation
     ? `${SYSTEM_PROMPT}\n\nUser's current location: ${userLocation}. When suggesting doctors, prefer doctors in or near this location.`
@@ -101,11 +100,12 @@ router.post("/chat/prescription", async (req, res): Promise<void> => {
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
   res.setHeader("Access-Control-Allow-Origin", "*");
+  res.flushHeaders?.();
 
   try {
     const stream = await openai.chat.completions.create({
       model: "gpt-5-mini",
-      max_completion_tokens: 800,
+      max_completion_tokens: 8192,
       stream: true,
       messages: [
         {
@@ -148,26 +148,6 @@ router.post("/chat/prescription", async (req, res): Promise<void> => {
 
   res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
   res.end();
-});
-
-router.get("/doctors/suggestions", async (req, res): Promise<void> => {
-  try {
-    const { specializations, city } = req.query as { specializations?: string; city?: string };
-    const specList = specializations ? specializations.split(",").map(s => s.trim()) : [];
-
-    let all = await db.select().from(doctors);
-
-    if (specList.length > 0) {
-      all = all.filter(d => specList.some(s => d.specialization.toLowerCase().includes(s.toLowerCase())));
-    }
-    if (city) {
-      all = all.filter(d => d.city.toLowerCase().includes(city.toLowerCase()));
-    }
-
-    res.json(all.slice(0, 3));
-  } catch {
-    res.status(500).json({ error: "Failed to fetch suggestions" });
-  }
 });
 
 export default router;

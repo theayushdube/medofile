@@ -2,3 +2,4 @@
 - [Medofile API architecture](medofile-api-arch.md) — PostgreSQL via Drizzle; API seeds 8 doctors + admin users on startup via seedIfEmpty(); bookings post to /api/bookings; doctor suggestions at /api/doctors/suggestions.
 - [Medofile web doctor hook](medofile-web-doctor-hook.md) — useDoctors/useDoctor in src/hooks/useDoctors.ts; WebDoctor uses Omit<ApiDoctor,"id"> & {id:string} to avoid never type; 60s in-memory cache.
 - [Medofile video removal](medofile-video-removal.md) — Video consultation fully removed from web (DoctorCard, DoctorProfile, DoctorList filter, doctors.ts type) and mobile (booking, doctor profile consult types); API seed data uses clinic/home only.
+- [Medofile SSE handling](medofile-sse-handling.md) — Chat clients must buffer partial SSE lines across ReadableStream chunks or AI replies and doctor tags can disappear.

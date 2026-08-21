@@ -8,6 +8,7 @@ import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
   Platform,
   Pressable,
   ScrollView,
@@ -462,10 +463,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Search bar */}
-        <Pressable
-          style={s.searchRow}
-          onPress={() => {}}
-        >
+        <View style={s.searchRow}>
           <Feather name="search" size={16} color={colors.mutedForeground} />
           <TextInput
             style={s.searchInput}
@@ -487,11 +485,11 @@ export default function HomeScreen() {
               paddingHorizontal: 10,
               paddingVertical: 5,
             }}
-            onPress={() => {}}
+            onPress={() => Keyboard.dismiss()}
           >
             <Text style={{ color: "#fff", fontSize: 11, fontFamily: "Inter_600SemiBold" }}>Search</Text>
-          </Pressable>
-        </Pressable>
+            </Pressable>
+        </View>
       </View>
 
       <FlatList

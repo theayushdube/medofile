@@ -42,6 +42,12 @@ export function Navbar() {
             Admin
           </button>
           <button
+            onClick={() => navigate("/register")}
+            className="text-primary text-sm font-semibold px-3 py-2 rounded-xl hover:bg-primary/10 transition-colors"
+          >
+            Register
+          </button>
+          <button
             onClick={() => navigate("/doctors")}
             className="bg-primary text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors"
           >
@@ -73,10 +79,10 @@ export function Navbar() {
             </button>
           ))}
           <button
-            onClick={() => { navigate("/doctors"); setOpen(false); }}
+            onClick={() => { navigate("/register"); setOpen(false); }}
             className="w-full bg-primary text-white text-sm font-semibold py-3 rounded-xl"
           >
-            Book Appointment
+            Register
           </button>
         </div>
       )}

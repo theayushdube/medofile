@@ -11,6 +11,7 @@ const DoctorList = lazy(() => import("@/pages/DoctorList"));
 const Booking = lazy(() => import("@/pages/Booking"));
 const AdminPanel = lazy(() => import("@/pages/AdminPanel"));
 const HealthBot = lazy(() => import("@/pages/HealthBot"));
+const Register = lazy(() => import("@/pages/Register"));
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ function Router() {
         <Route path="/book/:doctorId" component={Booking} />
         <Route path="/admin" component={AdminPanel} />
         <Route path="/healthbot" component={HealthBot} />
+        <Route path="/register" component={Register} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
