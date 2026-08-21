@@ -43,11 +43,28 @@ const CITIES = ["New Delhi","Mumbai","Bengaluru","Hyderabad","Kolkata","Gurugram
 
 function authHeaders(token: string) { return { "Content-Type": "application/json", Authorization: `Bearer ${token}` }; }
 
+function readStoredAuth(): AuthData | null {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("medofile_admin_auth") || "null") as Partial<AuthData> | null;
+    if (
+      typeof parsed?.token === "string" &&
+      parsed.token.length > 0 &&
+      typeof parsed.user?.id === "number" &&
+      typeof parsed.user.username === "string" &&
+      (parsed.user.role === "admin" || parsed.user.role === "superadmin")
+    ) {
+      return parsed as AuthData;
+    }
+  } catch {
+    // A stale or manually edited browser value should never prevent the login screen from rendering.
+  }
+  localStorage.removeItem("medofile_admin_auth");
+  return null;
+}
+
 export default function AdminPanel() {
   const [, navigate] = useLocation();
-  const [auth, setAuth] = useState<AuthData | null>(() => {
-    try { const s = localStorage.getItem("medofile_admin_auth"); return s ? JSON.parse(s) : null; } catch { return null; }
-  });
+  const [auth, setAuth] = useState<AuthData | null>(readStoredAuth);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -68,7 +85,7 @@ export default function AdminPanel() {
   const [newUserForm, setNewUserForm] = useState({ username: "", password: "", role: "admin" });
   const [addingUser, setAddingUser] = useState(false);
 
-  const isSuperAdmin = auth?.user.role === "superadmin";
+  const isSuperAdmin = auth?.user?.role === "superadmin";
 
   async function handleLogin() {
     if (!username || !password) { setLoginError("Enter username and password"); return; }
@@ -77,6 +94,11 @@ export default function AdminPanel() {
       const r = await fetch(`${API_BASE}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
       if (!r.ok) { setLoginError("Invalid credentials. Check your username and password."); setLogging(false); return; }
       const data: AuthData = await r.json();
+      if (!data.token || !data.user || !["admin", "superadmin"].includes(data.user.role)) {
+        setLoginError("The server returned an invalid admin session. Please try again.");
+        setLogging(false);
+        return;
+      }
       localStorage.setItem("medofile_admin_auth", JSON.stringify(data));
       setAuth(data);
     } catch { setLoginError("Server error. Please try again."); }
@@ -94,12 +116,14 @@ export default function AdminPanel() {
   const loadBookings = useCallback(async () => {
     if (!auth) return;
     const r = await fetch(`${API_BASE}/bookings`, { headers: authHeaders(auth.token) });
+    if (r.status === 401) { handleLogout(); return; }
     if (r.ok) setBookings(await r.json());
   }, [auth]);
 
   const loadUsers = useCallback(async () => {
     if (!auth || !isSuperAdmin) return;
     const r = await fetch(`${API_BASE}/admin/users`, { headers: authHeaders(auth.token) });
+    if (r.status === 401) { handleLogout(); return; }
     if (r.ok) setAdminUsers(await r.json());
   }, [auth, isSuperAdmin]);
 
