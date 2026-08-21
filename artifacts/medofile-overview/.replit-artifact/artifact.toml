@@ -1,0 +1,28 @@
+kind = "slides"
+previewPath = "/medofile-overview/"
+title = "Medofile Overview"
+description = "An eight-slide product overview of Medofile, a connected healthcare platform for patients and doctors across web and mobile, featuring AI assistance, doctor discovery, prescription understanding, and shared profile data."
+version = "1.0.0"
+id = "artifacts/medofile-overview"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/medofile-overview/" ]
+localPort = 18376
+
+[services.development]
+run = "pnpm --filter @workspace/medofile-overview run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/medofile-overview", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/medofile-overview/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18376"
+BASE_PATH = "/medofile-overview/"
