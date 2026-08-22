@@ -70,7 +70,9 @@ router.post("/chat", async (req, res): Promise<void> => {
   try {
     const stream = await openai.chat.completions.create({
       model: "gpt-5-mini",
-      max_completion_tokens: 1000,
+      // Leave room for safety guidance, the complete explanation, and the
+      // machine-readable doctor recommendation tag.
+      max_completion_tokens: 8192,
       messages: chatMessages as any,
       stream: true,
     });

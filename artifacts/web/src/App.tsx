@@ -113,21 +113,25 @@ function Router() {
 }
 
 function FloatingAssistant() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
+  if (location === "/healthbot") return null;
   return (
     <button
       onClick={() => navigate("/healthbot")}
-      className="fixed bottom-5 right-5 z-50 group flex items-center gap-3 rounded-2xl bg-[#0D1B2A] text-white px-4 py-3 shadow-2xl shadow-blue-950/25 hover:bg-primary transition-colors"
+      className="fixed bottom-5 right-4 sm:right-6 z-50 group flex items-center gap-2.5 rounded-2xl bg-gradient-to-br from-[#102844] via-[#0D1B2A] to-[#063B52] text-white px-3 py-2.5 sm:px-4 sm:py-3 shadow-2xl shadow-blue-950/30 ring-1 ring-white/10 hover:-translate-y-1 hover:shadow-[0_16px_35px_rgba(0,200,151,0.22)] transition-all duration-200 max-w-[calc(100vw-2rem)]"
       aria-label="Open Medofile AI Assistant"
     >
-      <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-[#00C897] text-[#062C2A]">
+      <span className="relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#00D8A0] to-[#00AFC2] text-[#062C2A] shadow-lg shadow-teal-500/25">
         <MessageCircle className="w-5 h-5" />
-        <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-[#0D1B2A]" />
+        <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-[#102844]">
+          <span className="absolute inset-0 rounded-full bg-red-400 animate-ping" />
+        </span>
       </span>
-      <span className="text-left">
+      <span className="text-left leading-tight">
         <span className="block text-xs font-semibold text-[#8FE8D2]">Medofile AI</span>
-        <span className="block text-sm font-semibold">Get your problem solved</span>
+        <span className="block text-[13px] sm:text-sm font-semibold">Need help? Ask AI</span>
       </span>
+      <span className="hidden sm:flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-[#8FE8D2] group-hover:bg-[#00C897]/20">↗</span>
     </button>
   );
 }

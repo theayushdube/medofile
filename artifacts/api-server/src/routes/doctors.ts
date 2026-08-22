@@ -120,18 +120,25 @@ router.get("/doctor-matches", async (req, res): Promise<void> => {
     const userLng = Number(req.query.lng);
     const canRankByDistance = Number.isFinite(userLat) && Number.isFinite(userLng);
     const radiusKm = Math.min(250, Math.max(1, Number(req.query.radiusKm) || 80));
-    const matches = all
+    const relevantDoctors = all
       .filter((doctor) => !specializations.length || specializations.some((specialization) => {
         const searchable = [doctor.specialization, ...doctor.treatments, doctor.about].join(" ").toLowerCase();
         return searchable.includes(specialization);
       }))
-      .filter((doctor) => !city || doctor.city.toLowerCase().includes(city))
+      .filter((doctor) => !city || doctor.city.toLowerCase().includes(city));
+    const nearbyRelevantDoctors = relevantDoctors
       .filter((doctor) => {
-        if (!canRankByDistance) return true;
+        if (!canRankByDistance) return false;
         const distance = doctorDistance(doctor, userLat, userLng);
         return distance !== null && distance <= radiusKm;
-      })
-      .map((doctor) => {
+      });
+    // Keep specialty relevance ahead of distance. If the network has no
+    // matching specialist nearby, show the nearest matching specialist rather
+    // than silently returning an unrelated doctor or an empty recommendation.
+    const matchPool = canRankByDistance && nearbyRelevantDoctors.length
+      ? nearbyRelevantDoctors
+      : relevantDoctors;
+    const matches = matchPool.map((doctor) => {
       let score = Math.round(doctor.rating * 10);
       const reasons: string[] = [];
       if (specializations.some((specialization) => [doctor.specialization, ...doctor.treatments, doctor.about].join(" ").toLowerCase().includes(specialization))) {
@@ -144,6 +151,9 @@ router.get("/doctor-matches", async (req, res): Promise<void> => {
       if (availability === "available" && doctor.isAcceptingBookings) { score += 10; reasons.push("Currently accepting booking requests"); }
       const distance = canRankByDistance ? doctorDistance(doctor, userLat, userLng) : null;
       if (distance !== null) { score += Math.max(0, 30 - Math.round(distance / 4)); reasons.push(`${Math.round(distance)} km from your location`); }
+      if (canRankByDistance && nearbyRelevantDoctors.length === 0 && distance !== null && distance > radiusKm) {
+        reasons.unshift(`Nearest matching specialist; no ${specializations.join(" or ")} doctor is listed within ${radiusKm} km`);
+      }
       if (!reasons.length) reasons.push(`Relevant ${doctor.specialization} near you`);
       return { doctor, score, reasons };
     }).sort((left, right) => right.score - left.score).slice(0, 6);

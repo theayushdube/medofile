@@ -2,6 +2,7 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { fetch } from "expo/fetch";
 import React, { useCallback, useRef, useState } from "react";
@@ -76,7 +77,7 @@ function inferDoctorRequest(text: string): { spec: string[]; city: string } {
     [["skin", "rash", "acne", "pimple", "itch"], "Dermatologist"],
     [["child", "baby", "kid", "pediatric", "infant"], "Pediatrician"],
     [["heart", "chest pain", "blood pressure", "palpitation"], "Cardiologist"],
-    [["headache", "migraine", "seizure", "nerve"], "Neurologist"],
+    [["head", "headache", "migraine", "dizziness", "vertigo", "seizure", "nerve"], "Neurologist"],
     [["bone", "joint", "back pain", "knee", "fracture"], "Orthopedic"],
     [["eye", "vision", "glasses"], "Ophthalmologist"],
     [["tooth", "teeth", "gum", "dental"], "Dentist"],
@@ -89,11 +90,16 @@ function inferDoctorRequest(text: string): { spec: string[]; city: string } {
   return { spec: [spec], city };
 }
 
-async function fetchDoctorSuggestions(specializations: string[], city: string): Promise<Doctor[]> {
+async function fetchDoctorSuggestions(specializations: string[], city: string, coordinates: { lat: number; lng: number } | null): Promise<Doctor[]> {
   try {
     const params = new URLSearchParams();
     if (specializations.length) params.set("specializations", specializations.join(","));
     if (city) params.set("city", city);
+    if (coordinates) {
+      params.set("lat", String(coordinates.lat));
+      params.set("lng", String(coordinates.lng));
+      params.set("radiusKm", "80");
+    }
     const r = await fetch(`${API_BASE_URL}/doctor-matches?${params}`);
     if (!r.ok) return [];
     const payload = await r.json() as { data: Array<{ doctor: Doctor; reasons: string[] }> };
@@ -108,7 +114,21 @@ export default function HealthBotScreen() {
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const abortRef = useRef<boolean>(false);
+
+  React.useEffect(() => {
+    void (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") return;
+        const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        setCoordinates({ lat: current.coords.latitude, lng: current.coords.longitude });
+      } catch {
+        // Doctor suggestions still work by specialty when location is unavailable.
+      }
+    })();
+  }, []);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const botPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -197,8 +217,7 @@ export default function HealthBotScreen() {
         if (!imageBase64) {
           const inferred = inferDoctorRequest(trimmed);
           const request = parsed && parsed.spec.length ? parsed : inferred;
-          let docs = await fetchDoctorSuggestions(request.spec, request.city);
-          if (!docs.length && request.city) docs = await fetchDoctorSuggestions(request.spec, "");
+          const docs = await fetchDoctorSuggestions(request.spec, request.city, coordinates);
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
@@ -228,7 +247,7 @@ export default function HealthBotScreen() {
         setStreaming(false);
       }
     },
-    [messages, streaming]
+    [coordinates, messages, streaming]
   );
 
   async function handlePrescriptionPhoto() {

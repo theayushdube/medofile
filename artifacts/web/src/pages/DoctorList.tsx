@@ -89,7 +89,7 @@ export default function DoctorList() {
 
   const { doctors: filtered, loading } = useDoctors({
     q: search,
-    city: city === "All Cities" ? "" : city,
+    city: coordinates ? "" : city === "All Cities" ? "" : city,
     specialization: selectedSpec,
     gender: genderFilter === "All" ? "" : genderFilter,
     consultationType: consultFilter,
@@ -105,7 +105,7 @@ export default function DoctorList() {
   useEffect(() => {
     const params = new URLSearchParams();
     if (selectedSpec) params.set("specializations", selectedSpec);
-    if (city !== "All Cities") params.set("city", city);
+    if (city !== "All Cities" && !coordinates) params.set("city", city);
     if (coordinates) { params.set("lat", String(coordinates.lat)); params.set("lng", String(coordinates.lng)); }
     if (language) params.set("language", language);
     if (maxFee) params.set("maxFee", maxFee);
