@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Check, Stethoscope, UserRound } from "lucide-react";
@@ -7,13 +7,18 @@ import { Navbar } from "@/components/Navbar";
 export default function Register() {
   const [, navigate] = useLocation();
   const { user, isLoaded } = useUser();
-  const [role, setRole] = useState<"patient" | "doctor">("patient");
+  const [role, setRole] = useState<"patient" | "doctor">(() => new URLSearchParams(window.location.search).get("role") === "doctor" ? "doctor" : "patient");
   const [name, setName] = useState(user?.fullName || "");
   const [specialization, setSpecialization] = useState("General Physician");
   const [city, setCity] = useState("");
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const requestedRole = new URLSearchParams(window.location.search).get("role");
+    if (requestedRole === "doctor" || requestedRole === "patient") setRole(requestedRole);
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,19 +58,20 @@ export default function Register() {
         <button onClick={() => navigate("/")} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8"><ArrowLeft className="w-4 h-4" /> Back to home</button>
         {!isLoaded ? <div className="bg-card border border-border rounded-3xl p-10 text-center text-muted-foreground">Loading secure registration…</div> : !user ? (
           <div className="bg-card border border-border rounded-3xl p-6 md:p-10 shadow-sm text-center">
-            <p className="text-sm font-semibold text-primary mb-2">Your Medofile account</p>
-            <h1 className="text-3xl font-bold text-foreground">Keep care connected across devices</h1>
-            <p className="text-muted-foreground mt-3 max-w-lg mx-auto">Create an optional account to save doctors, track appointments, and manage a professional profile. Browsing stays available without an account.</p>
-            <div className="mt-7 flex flex-col sm:flex-row justify-center gap-3">
-              <button onClick={() => navigate("/sign-up")} className="rounded-xl bg-primary text-white px-5 py-3 font-semibold hover:bg-primary/90">Create account</button>
-              <button onClick={() => navigate("/sign-in")} className="rounded-xl border border-border px-5 py-3 font-semibold text-foreground hover:border-primary">Sign in</button>
+             <p className="text-sm font-semibold text-primary mb-2">Join Medofile</p>
+             <h1 className="text-3xl font-bold text-foreground">Choose how you’ll use Medofile</h1>
+             <p className="text-muted-foreground mt-3 max-w-lg mx-auto">Patients can organize care. Doctors can build a public profile, manage booking requests, and send follow-up instructions.</p>
+             <div className="grid sm:grid-cols-2 gap-3 mt-7">
+               <button onClick={() => navigate("/sign-up?role=patient")} className="rounded-xl bg-primary text-white px-5 py-3 font-semibold hover:bg-primary/90">Create patient account</button>
+               <button onClick={() => navigate("/sign-up?role=doctor")} className="rounded-xl border border-primary text-primary px-5 py-3 font-semibold hover:bg-primary/5">Register as a doctor</button>
             </div>
+             <p className="text-sm text-muted-foreground mt-5">Already have an account? <button onClick={() => navigate("/sign-in")} className="font-semibold text-primary hover:underline">Sign in to Medofile</button></p>
           </div>
         ) : (
           <div className="bg-card border border-border rounded-3xl p-6 md:p-10 shadow-sm">
             <p className="text-sm font-semibold text-primary mb-2">Set up your Medofile profile</p>
-            <h1 className="text-3xl font-bold text-foreground">How will you use Medofile?</h1>
-            <p className="text-muted-foreground mt-2">Your browsing remains private. Set up only the care tools you want to use.</p>
+             <h1 className="text-3xl font-bold text-foreground">{role === "doctor" ? "Set up your doctor profile" : "Set up your patient profile"}</h1>
+             <p className="text-muted-foreground mt-2">{role === "doctor" ? "Create your professional listing so patients can find you and you can manage your Medofile workspace." : "Your browsing remains private. Set up only the care tools you want to use."}</p>
             <div className="grid sm:grid-cols-2 gap-4 mt-8">
               {[
                 { value: "patient" as const, icon: UserRound, title: "Patient", text: "Save doctors, keep appointments together, and return to your care history." },

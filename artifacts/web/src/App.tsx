@@ -44,6 +44,20 @@ function LoadingFallback() {
 }
 
 function Router() {
+  const authCard = (content: React.ReactNode, footer?: React.ReactNode) => (
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-[440px]">
+        <div className="text-center mb-5">
+          <p className="text-sm font-semibold tracking-wide text-primary">Medofile</p>
+          <h1 className="text-2xl font-bold text-foreground mt-2">Your care, connected</h1>
+          <p className="text-sm text-muted-foreground mt-1">One secure account for patients and doctors.</p>
+        </div>
+        {content}
+        {footer}
+      </div>
+    </div>
+  );
+
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
@@ -57,8 +71,24 @@ function Router() {
         <Route path="/account" component={Account} />
         <Route path="/blog" component={BlogIndex} />
         <Route path="/blog/:slug" component={BlogArticle} />
-        <Route path="/sign-in/*?">{() => <div className="min-h-screen bg-background flex items-center justify-center px-4"><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /></div>}</Route>
-        <Route path="/sign-up/*?">{() => <div className="min-h-screen bg-background flex items-center justify-center px-4"><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} /></div>}</Route>
+        <Route path="/sign-in/*?">{() => authCard(
+          <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />,
+          <p className="text-center text-sm text-muted-foreground mt-4">Are you a doctor? <a className="font-semibold text-primary hover:underline" href={`${basePath}/register?role=doctor`}>Join Medofile as a doctor</a></p>,
+        )}</Route>
+        <Route path="/sign-up/*?">{() => {
+          const doctorSignup = new URLSearchParams(window.location.search).get("role") === "doctor";
+          const redirect = `${basePath}/register?role=${doctorSignup ? "doctor" : "patient"}`;
+          return authCard(
+            <>
+              <div className="text-center mb-4">
+                <p className="text-xs font-semibold uppercase tracking-[.16em] text-primary">{doctorSignup ? "Doctor registration" : "Patient registration"}</p>
+                <h2 className="text-lg font-bold text-foreground mt-1">{doctorSignup ? "Create your Medofile doctor account" : "Create your Medofile account"}</h2>
+              </div>
+              <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} fallbackRedirectUrl={redirect} />,
+            </>,
+            <p className="text-center text-sm text-muted-foreground mt-4">{doctorSignup ? "Looking for patient care?" : "Are you a doctor?"} <a className="font-semibold text-primary hover:underline" href={`${basePath}/sign-up?role=${doctorSignup ? "patient" : "doctor"}`}>{doctorSignup ? "Create a patient account" : "Register as a doctor"}</a></p>,
+          );
+        }}</Route>
         <Route path="/doctor-profile/manage/:id" component={DoctorProfileManager} />
         <Route component={NotFound} />
       </Switch>

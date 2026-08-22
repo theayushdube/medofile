@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useUser } from "@clerk/react";
 import { useLocation, useRoute } from "wouter";
 import { ArrowLeft, Save, ShieldCheck } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
@@ -27,12 +28,18 @@ function inputValue(value: unknown) {
 export default function DoctorProfileManager() {
   const [, params] = useRoute("/doctor-profile/manage/:id");
   const [, navigate] = useLocation();
+  const { user, isLoaded } = useUser();
   const [form, setForm] = useState<Form>(empty);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const id = params?.id;
 
   useEffect(() => {
+    if (!isLoaded) return;
+    if (!user) {
+      navigate(`/sign-in?redirect_url=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      return;
+    }
     const query = new URLSearchParams(window.location.search);
     if (id === "new") {
       setForm((current) => ({ ...current, name: query.get("name") ?? "", phone: "", }));
@@ -58,7 +65,7 @@ export default function DoctorProfileManager() {
         emergencyAvailable: Boolean(doctor.emergencyAvailable),
       });
     });
-  }, [id]);
+  }, [id, isLoaded, navigate, user]);
 
   function setField(key: keyof Form, value: string) {
     setForm((current) => ({ ...current, [key]: value }));
