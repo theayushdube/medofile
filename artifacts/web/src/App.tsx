@@ -32,6 +32,21 @@ const clerkAppearance = {
   elements: { cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-xl", card: "!shadow-none !border-0 !bg-transparent", footer: "!shadow-none !border-0 !bg-transparent", headerTitle: "text-foreground", headerSubtitle: "text-muted-foreground", formFieldLabel: "text-foreground", footerActionLink: "text-primary", footerActionText: "text-muted-foreground", dividerText: "text-muted-foreground", formButtonPrimary: "bg-primary", formFieldInput: "bg-slate-50 border-slate-200", socialButtonsBlockButton: "border-slate-200", socialButtonsBlockButtonText: "text-foreground" },
 };
 
+const clerkLocalization = {
+  signIn: {
+    start: {
+      title: "Sign in to Medofile",
+      subtitle: "Welcome back. Continue to your Medofile account.",
+    },
+  },
+  signUp: {
+    start: {
+      title: "Create your Medofile account",
+      subtitle: "Set up a secure account for your care journey.",
+    },
+  },
+};
+
 function LoadingFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -99,7 +114,7 @@ function Router() {
 function App() {
   const [, setLocation] = useLocation();
   return (
-    <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={clerkAppearance} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} routerPush={(to) => setLocation(to.replace(basePath, "") || "/")} routerReplace={(to) => setLocation(to.replace(basePath, "") || "/", { replace: true })}>
+    <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={clerkAppearance} localization={clerkLocalization} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} routerPush={(to) => setLocation(to.replace(basePath, "") || "/")} routerReplace={(to) => setLocation(to.replace(basePath, "") || "/", { replace: true })}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Router />

@@ -150,7 +150,7 @@ export default function Account() {
           </div>
         </section>
 
-        {account?.role === "doctor" && workspace ? <DoctorWorkspace workspace={workspace} /> : (
+        {account?.role === "doctor" && workspace ? <><div className="flex justify-end mb-4"><button onClick={() => navigate(`/doctor-profile/manage/${workspace.doctor.id}`)} className="rounded-xl border border-primary px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/5">Manage public profile</button></div><DoctorWorkspace workspace={workspace} /></> : (
           <div className="grid lg:grid-cols-3 gap-6">
             <section className="lg:col-span-2 space-y-6">
               <CareList title="Upcoming appointments" icon={<CalendarDays className="w-5 h-5 text-primary" />} items={upcoming} empty="No upcoming appointments yet. Find a doctor when you are ready." onBrowse={() => navigate("/doctors")} onCancel={(id) => changeBooking(id, "cancel")} onReschedule={(id) => changeBooking(id, "reschedule")} busyId={actionBusy} />
