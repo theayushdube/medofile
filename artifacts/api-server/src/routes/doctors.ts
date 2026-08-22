@@ -50,7 +50,6 @@ router.get("/doctors", async (req, res): Promise<void> => {
     const userLat = Number(req.query.lat);
     const userLng = Number(req.query.lng);
     const radiusKm = Math.min(250, Math.max(1, Number(req.query.radiusKm) || 80));
-    const radiusKm = Math.min(250, Math.max(1, Number(req.query.radiusKm) || 80));
     const canRankByDistance = Number.isFinite(userLat) && Number.isFinite(userLng);
 
     let result = all.filter((doctor) => {
@@ -120,6 +119,7 @@ router.get("/doctor-matches", async (req, res): Promise<void> => {
     const userLat = Number(req.query.lat);
     const userLng = Number(req.query.lng);
     const canRankByDistance = Number.isFinite(userLat) && Number.isFinite(userLng);
+    const radiusKm = Math.min(250, Math.max(1, Number(req.query.radiusKm) || 80));
     const matches = all
       .filter((doctor) => !specializations.length || specializations.some((specialization) => {
         const searchable = [doctor.specialization, ...doctor.treatments, doctor.about].join(" ").toLowerCase();

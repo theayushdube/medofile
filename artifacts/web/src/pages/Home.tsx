@@ -44,15 +44,20 @@ export default function Home() {
   const [city, setCity] = useState("All Cities");
   const [selectedSpec, setSelectedSpec] = useState("");
   const [locating, setLocating] = useState(false);
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [heroMode, setHeroMode] = useState<"patient" | "doctor">("patient");
   const [heroTilt, setHeroTilt] = useState({ x: 0, y: 0 });
-  const { doctors } = useDoctors();
+  const { doctors } = useDoctors(coordinates ? { lat: String(coordinates.lat), lng: String(coordinates.lng), radiusKm: "80" } : {});
 
   function detectLocation() {
     if (!navigator.geolocation) return;
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => { setCity(nearestCity(pos.coords.latitude, pos.coords.longitude)); setLocating(false); },
+      (pos) => {
+        setCoordinates({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setCity(nearestCity(pos.coords.latitude, pos.coords.longitude));
+        setLocating(false);
+      },
       () => setLocating(false),
       { timeout: 8000 }
     );
@@ -62,7 +67,7 @@ export default function Home() {
     return doctors.filter((d) => {
       const q = search.toLowerCase();
       const matchSearch = !q || d.name.toLowerCase().includes(q) || d.specialization.toLowerCase().includes(q) || d.city.toLowerCase().includes(q);
-      const matchCity = city === "All Cities" || d.city === city;
+      const matchCity = coordinates ? true : city === "All Cities" || d.city === city;
       const matchSpec = !selectedSpec || d.specialization === selectedSpec;
       return matchSearch && matchCity && matchSpec;
     });
@@ -190,18 +195,22 @@ export default function Home() {
                 className="shrink-0 hover:text-primary transition-colors disabled:opacity-50">
                 <LocateFixed className={`w-4 h-4 ${locating ? "animate-pulse text-primary" : "text-[#8291A7]"}`} />
               </button>
-              <select className="flex-1 bg-transparent text-gray-700 text-sm outline-none cursor-pointer"
-                value={city} onChange={(e) => setCity(e.target.value)}>
-                <option>All Cities</option>
-                {CITIES.map((c) => <option key={c}>{c}</option>)}
-              </select>
+              <input
+                list="home-city-options"
+                className="flex-1 min-w-0 bg-transparent text-gray-700 text-sm outline-none"
+                placeholder="Type a city"
+                value={city}
+                onChange={(e) => { setCity(e.target.value); setCoordinates(null); }}
+                aria-label="Search by city"
+              />
+              <datalist id="home-city-options"><option value="All Cities" />{CITIES.map((c) => <option key={c} value={c} />)}</datalist>
               <ChevronDown className="w-3 h-3 text-gray-400" />
             </div>
             <button
               className="bg-[#0D1B2A] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-primary active:scale-95 transition-all shrink-0 inline-flex items-center justify-center gap-2"
               onClick={() => heroMode === "doctor"
                 ? navigate("/register")
-                : navigate(`/doctors?q=${encodeURIComponent(search)}&city=${encodeURIComponent(city)}`)}
+                : navigate(`/doctors?q=${encodeURIComponent(search)}&city=${encodeURIComponent(city === "All Cities" ? "" : city)}`)}
             >
               {heroContent.action} <ArrowRight className="w-4 h-4" />
             </button>
