@@ -106,7 +106,9 @@ router.post("/chat/prescription", async (req, res): Promise<void> => {
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-5-mini",
-      max_completion_tokens: 700,
+      // Vision extraction can spend completion tokens on image reasoning before
+      // returning visible text. Keep enough budget for the actual medicine list.
+      max_completion_tokens: 8192,
       stream: false,
       messages: [
         {
@@ -127,7 +129,7 @@ Carefully inspect both printed and handwritten text. If one medicine or instruct
             },
             {
               type: "image_url",
-              image_url: { url: imageBase64 }
+              image_url: { url: imageBase64, detail: "high" }
             }
           ] as any
         }
@@ -138,6 +140,12 @@ Carefully inspect both printed and handwritten text. If one medicine or instruct
     if (typeof content === "string" && content.trim()) {
       res.write(`data: ${JSON.stringify({ content })}\n\n`);
     } else {
+      logger.warn({
+        finishReason: completion.choices[0]?.finish_reason,
+        hasRefusal: Boolean(completion.choices[0]?.message?.refusal),
+        promptTokens: completion.usage?.prompt_tokens,
+        completionTokens: completion.usage?.completion_tokens,
+      }, "Prescription vision returned no visible content");
       res.write(`data: ${JSON.stringify({ content: "I couldn't read a usable result from that prescription image. Please upload a clear, well-lit photo with the full prescription visible." })}\n\n`);
     }
   } catch (err: unknown) {
