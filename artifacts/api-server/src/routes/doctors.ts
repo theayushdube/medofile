@@ -50,6 +50,7 @@ router.get("/doctors", async (req, res): Promise<void> => {
     const userLat = Number(req.query.lat);
     const userLng = Number(req.query.lng);
     const radiusKm = Math.min(250, Math.max(1, Number(req.query.radiusKm) || 80));
+    const radiusKm = Math.min(250, Math.max(1, Number(req.query.radiusKm) || 80));
     const canRankByDistance = Number.isFinite(userLat) && Number.isFinite(userLng);
 
     let result = all.filter((doctor) => {
@@ -119,10 +120,21 @@ router.get("/doctor-matches", async (req, res): Promise<void> => {
     const userLat = Number(req.query.lat);
     const userLng = Number(req.query.lng);
     const canRankByDistance = Number.isFinite(userLat) && Number.isFinite(userLng);
-    const matches = all.map((doctor) => {
+    const matches = all
+      .filter((doctor) => !specializations.length || specializations.some((specialization) => {
+        const searchable = [doctor.specialization, ...doctor.treatments, doctor.about].join(" ").toLowerCase();
+        return searchable.includes(specialization);
+      }))
+      .filter((doctor) => !city || doctor.city.toLowerCase().includes(city))
+      .filter((doctor) => {
+        if (!canRankByDistance) return true;
+        const distance = doctorDistance(doctor, userLat, userLng);
+        return distance !== null && distance <= radiusKm;
+      })
+      .map((doctor) => {
       let score = Math.round(doctor.rating * 10);
       const reasons: string[] = [];
-      if (specializations.some((specialization) => doctor.specialization.toLowerCase().includes(specialization))) {
+      if (specializations.some((specialization) => [doctor.specialization, ...doctor.treatments, doctor.about].join(" ").toLowerCase().includes(specialization))) {
         score += 50; reasons.push(`Matches the care type you described (${doctor.specialization})`);
       }
       if (city && doctor.city.toLowerCase().includes(city)) { score += 20; reasons.push(`Practices in ${doctor.city}`); }
@@ -132,7 +144,7 @@ router.get("/doctor-matches", async (req, res): Promise<void> => {
       if (availability === "available" && doctor.isAcceptingBookings) { score += 10; reasons.push("Currently accepting booking requests"); }
       const distance = canRankByDistance ? doctorDistance(doctor, userLat, userLng) : null;
       if (distance !== null) { score += Math.max(0, 30 - Math.round(distance / 4)); reasons.push(`${Math.round(distance)} km from your location`); }
-      if (!reasons.length) reasons.push(`Highly rated ${doctor.specialization} on Medofile`);
+      if (!reasons.length) reasons.push(`Relevant ${doctor.specialization} near you`);
       return { doctor, score, reasons };
     }).sort((left, right) => right.score - left.score).slice(0, 6);
     res.json({ data: matches });

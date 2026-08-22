@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useUser } from "@clerk/react";
-import { Sparkles, Send, RefreshCw, Camera, FileText, ArrowLeft, X } from "lucide-react";
+import { Sparkles, Send, RefreshCw, Camera, FileText, ArrowLeft, X, LocateFixed } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 
 interface Doctor {
@@ -56,7 +56,7 @@ function inferDoctorRequest(text: string): { spec: string[]; city: string } {
     [["skin", "rash", "acne", "pimple", "itch"], "Dermatologist"],
     [["child", "baby", "kid", "pediatric", "infant"], "Pediatrician"],
     [["heart", "chest pain", "blood pressure", "palpitation"], "Cardiologist"],
-    [["headache", "migraine", "seizure", "nerve"], "Neurologist"],
+    [["head", "headache", "migraine", "dizziness", "vertigo", "seizure", "nerve"], "Neurologist"],
     [["bone", "joint", "back pain", "knee", "fracture"], "Orthopedic"],
     [["eye", "vision", "glasses"], "Ophthalmologist"],
     [["tooth", "teeth", "gum", "dental"], "Dentist"],
@@ -69,11 +69,16 @@ function inferDoctorRequest(text: string): { spec: string[]; city: string } {
   return { spec: [spec], city };
 }
 
-async function fetchDoctorSuggestions(specializations: string[], city: string): Promise<Array<Doctor & { reasons?: string[] }>> {
+async function fetchDoctorSuggestions(specializations: string[], city: string, coordinates: { lat: number; lng: number } | null): Promise<Array<Doctor & { reasons?: string[] }>> {
   try {
     const params = new URLSearchParams();
     if (specializations.length) params.set("specializations", specializations.join(","));
     if (city) params.set("city", city);
+    if (coordinates) {
+      params.set("lat", String(coordinates.lat));
+      params.set("lng", String(coordinates.lng));
+      params.set("radiusKm", "80");
+    }
     const r = await fetch(`/api/doctor-matches?${params}`);
     if (!r.ok) return [];
     const payload = await r.json() as { data: Array<{ doctor: Doctor; reasons: string[] }> };
@@ -129,12 +134,23 @@ function preparePrescriptionImage(file: File): Promise<string> {
 export default function HealthBot() {
   const [, navigate] = useLocation();
   const { user } = useUser();
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationReady, setLocationReady] = useState(false);
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef(false);
+
+  useEffect(() => {
+    if (!navigator.geolocation) { setLocationReady(true); return; }
+    navigator.geolocation.getCurrentPosition(
+      (position) => { setCoordinates({ lat: position.coords.latitude, lng: position.coords.longitude }); setLocationReady(true); },
+      () => setLocationReady(true),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -219,8 +235,7 @@ export default function HealthBot() {
       if (!imageDataUrl) {
         const inferred = inferDoctorRequest(trimmed);
         const request = parsed && parsed.spec.length ? parsed : inferred;
-        let docs = await fetchDoctorSuggestions(request.spec, request.city);
-        if (!docs.length && request.city) docs = await fetchDoctorSuggestions(request.spec, "");
+        const docs = await fetchDoctorSuggestions(request.spec, request.city, coordinates);
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId ? { ...m, content: parsed?.clean ?? accumulated.trim(), suggestedDoctors: docs } : m
@@ -249,7 +264,7 @@ export default function HealthBot() {
     } finally {
       setStreaming(false);
     }
-  }, [messages, streaming]);
+  }, [coordinates, messages, streaming]);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -276,9 +291,13 @@ export default function HealthBot() {
 
       <div className="flex-1 max-w-3xl mx-auto w-full flex flex-col px-4 pb-4">
         {/* Chat header */}
-        <div className="flex items-center gap-3 py-4 border-b border-border mb-2">
+          <div className="flex items-center gap-3 py-4 border-b border-border mb-2">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+            <LocateFixed className={`w-3.5 h-3.5 ${coordinates ? "text-primary" : "text-muted-foreground"}`} />
+            {coordinates ? "Doctor suggestions are ranked near your current location." : locationReady ? "Allow location access for nearby doctor suggestions." : "Finding your location for nearby suggestions…"}
           </div>
           <div className="flex-1">
             <div className="font-semibold text-foreground text-sm">AI Health Assistant</div>

@@ -148,13 +148,18 @@ export default function DoctorList() {
                 {locating ? <LocateFixed className="w-4 h-4 animate-pulse text-primary" /> : <Navigation className={`w-4 h-4 ${coordinates ? "text-primary" : "text-muted-foreground"}`} />}
               </button>
               <MapPin className={`w-4 h-4 ${coordinates ? "text-primary" : "text-muted-foreground"}`} />
-              <select
-                className="bg-transparent text-sm text-foreground outline-none cursor-pointer"
+              <input
+                list="doctor-city-options"
+                aria-label="Search by city"
+                className="w-32 bg-transparent text-sm text-foreground outline-none"
+                placeholder="Type a city"
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
-              >
-                {CITIES.map((c) => <option key={c}>{c}</option>)}
-              </select>
+                onChange={(e) => {
+                  setCity(e.target.value);
+                  if (coordinates) { setCoordinates(null); setLocationLabel(""); }
+                }}
+              />
+              <datalist id="doctor-city-options">{CITIES.map((c) => <option key={c} value={c} />)}</datalist>
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}

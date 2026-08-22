@@ -5,7 +5,8 @@ import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, type ReactNode } from "react";
+import { MessageCircle } from "lucide-react";
 import NotFound from "@/pages/not-found";
 
 const Home = lazy(() => import("@/pages/Home"));
@@ -59,7 +60,7 @@ function LoadingFallback() {
 }
 
 function Router() {
-  const authCard = (content: React.ReactNode, footer?: React.ReactNode) => (
+  const authCard = (content: ReactNode, footer?: ReactNode) => (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-[440px]">
         <div className="text-center mb-5">
@@ -111,6 +112,26 @@ function Router() {
   );
 }
 
+function FloatingAssistant() {
+  const [, navigate] = useLocation();
+  return (
+    <button
+      onClick={() => navigate("/healthbot")}
+      className="fixed bottom-5 right-5 z-50 group flex items-center gap-3 rounded-2xl bg-[#0D1B2A] text-white px-4 py-3 shadow-2xl shadow-blue-950/25 hover:bg-primary transition-colors"
+      aria-label="Open Medofile AI Assistant"
+    >
+      <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-[#00C897] text-[#062C2A]">
+        <MessageCircle className="w-5 h-5" />
+        <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-[#0D1B2A]" />
+      </span>
+      <span className="text-left">
+        <span className="block text-xs font-semibold text-[#8FE8D2]">Medofile AI</span>
+        <span className="block text-sm font-semibold">Get your problem solved</span>
+      </span>
+    </button>
+  );
+}
+
 function App() {
   const [, setLocation] = useLocation();
   return (
@@ -118,6 +139,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Router />
+          <FloatingAssistant />
           <Toaster />
         </TooltipProvider>
       </QueryClientProvider>
