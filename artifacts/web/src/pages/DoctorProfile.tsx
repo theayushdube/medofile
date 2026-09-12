@@ -449,9 +449,9 @@ export default function DoctorProfile() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-5">
+          <div className="self-start space-y-5 lg:sticky lg:top-32">
             {/* Book Card */}
-            <div className="bg-white rounded-2xl border border-border p-5 sticky top-32">
+            <div className="bg-white rounded-2xl border border-border p-5">
               <div className="text-center mb-4">
                 <div className="text-2xl font-bold text-primary">₹{doctor.fee}</div>
                 <div className="text-xs text-muted-foreground">Consultation fee</div>

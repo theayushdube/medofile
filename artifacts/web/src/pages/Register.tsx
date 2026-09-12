@@ -3,13 +3,14 @@ import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Check, Stethoscope, UserRound } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { SpecializationMultiSelect } from "@/components/SpecializationMultiSelect";
 
 export default function Register() {
   const [, navigate] = useLocation();
   const { user, isLoaded } = useUser();
   const [role, setRole] = useState<"patient" | "doctor">(() => new URLSearchParams(window.location.search).get("role") === "doctor" ? "doctor" : "patient");
   const [name, setName] = useState(user?.fullName || "");
-  const [specialization, setSpecialization] = useState("General Physician");
+  const [specializations, setSpecializations] = useState<string[]>(["General Physician"]);
   const [city, setCity] = useState("");
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -35,11 +36,11 @@ export default function Register() {
       const profileResponse = await fetch("/api/me", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(baseProfile) });
       if (!profileResponse.ok) throw new Error("We could not save your profile.");
       if (role === "doctor") {
-        if (!specialization.trim() || !city.trim() || !phone.trim()) throw new Error("Add your specialty, city, and phone number to create a doctor profile.");
+        if (!specializations.length || !city.trim() || !phone.trim()) throw new Error("Select at least one specialty, then add your city and phone number to create a doctor profile.");
         const response = await fetch("/api/doctors/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...baseProfile, specialization: specialization.trim(), city: city.trim(), phone: phone.trim(), consultationTypes: ["clinic"], availability: "By appointment", timing: "Please contact clinic" }),
+          body: JSON.stringify({ ...baseProfile, specialization: specializations.join(", "), city: city.trim(), phone: phone.trim(), consultationTypes: ["clinic"], availability: "By appointment", timing: "Please contact clinic" }),
         });
         if (!response.ok && response.status !== 409) throw new Error("We could not create your doctor profile.");
       }
@@ -85,7 +86,12 @@ export default function Register() {
               <label className="block text-sm font-medium text-foreground">Full name<input required value={name} onChange={(e) => setName(e.target.value)} placeholder={role === "doctor" ? "Dr. Your Name" : "Your full name"} className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus:ring-2 focus:ring-primary/30" /></label>
               <label className="block text-sm font-medium text-foreground">Email<input disabled value={user.primaryEmailAddress?.emailAddress || ""} className="mt-2 w-full rounded-xl border border-border bg-muted px-4 py-3 text-muted-foreground" /></label>
               {(role === "doctor" || phone) && <label className="block text-sm font-medium text-foreground">Phone {role === "doctor" && <span className="text-destructive">*</span>}<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus:ring-2 focus:ring-primary/30" /></label>}
-              {role === "doctor" && <div className="grid sm:grid-cols-2 gap-4"><label className="block text-sm font-medium text-foreground">Specialty<input required value={specialization} onChange={(e) => setSpecialization(e.target.value)} className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus:ring-2 focus:ring-primary/30" /></label><label className="block text-sm font-medium text-foreground">City<input required value={city} onChange={(e) => setCity(e.target.value)} placeholder="Your city" className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus:ring-2 focus:ring-primary/30" /></label></div>}
+              {role === "doctor" && <div className="grid sm:grid-cols-2 gap-4">
+                <label className="block text-sm font-medium text-foreground">Specializations <span className="text-destructive">*</span>
+                  <SpecializationMultiSelect selected={specializations} onChange={setSpecializations} />
+                </label>
+                <label className="block text-sm font-medium text-foreground">City<input required value={city} onChange={(e) => setCity(e.target.value)} placeholder="Your city" className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus:ring-2 focus:ring-primary/30" /></label>
+              </div>}
               {error && <p className="text-sm text-destructive">{error}</p>}
               <button disabled={submitting} className="w-full rounded-xl bg-primary text-white py-3.5 font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60">{submitting ? "Saving…" : `Continue as ${role === "doctor" ? "Doctor" : "Patient"}`}</button>
             </form>

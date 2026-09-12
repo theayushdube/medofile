@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { motion, type Variants } from "framer-motion";
 import { SPECIALIZATIONS } from "@/data/doctors";
+import { parseSpecializations } from "@/data/specializations";
 import { useDoctors } from "@/hooks/useDoctors";
 import { Navbar } from "@/components/Navbar";
 import { DoctorCard } from "@/components/DoctorCard";
@@ -78,7 +79,7 @@ export default function Home() {
   const careSpecializations = useMemo(() => {
     const known = new Set(SPECIALIZATIONS.map((specialization) => specialization.name.toLowerCase()));
     const custom = doctors
-      .map((doctor) => doctor.specialization.trim())
+      .flatMap((doctor) => parseSpecializations(doctor.specialization))
       .filter((specialization) => specialization && !known.has(specialization.toLowerCase()))
       .map((name, index) => ({ id: `custom-${index}-${name.toLowerCase().replace(/\W+/g, "-")}`, name, emoji: "✦", color: "#0A56B7" }));
     return [...SPECIALIZATIONS, ...custom];

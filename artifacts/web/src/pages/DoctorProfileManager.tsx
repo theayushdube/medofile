@@ -3,9 +3,11 @@ import { useUser } from "@clerk/react";
 import { useLocation, useRoute } from "wouter";
 import { ArrowLeft, Save, ShieldCheck, ImagePlus, Upload } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { SpecializationMultiSelect } from "@/components/SpecializationMultiSelect";
+import { parseSpecializations } from "@/data/specializations";
 
 type Form = {
-  name: string; qualification: string; specialization: string; experience: string; fee: string;
+  name: string; qualification: string; specialization: string[]; experience: string; fee: string;
   hospital: string; clinicName: string; address: string; city: string; phone: string; about: string;
   languages: string; availability: string; timing: string; registrationNumber: string; treatments: string;
   website: string; instagram: string; youtube: string; linkedin: string; consultationTypes: string;
@@ -14,7 +16,7 @@ type Form = {
 };
 
 const empty: Form = {
-  name: "", qualification: "", specialization: "General Physician", experience: "", fee: "500",
+  name: "", qualification: "", specialization: ["General Physician"], experience: "", fee: "500",
   hospital: "", clinicName: "", address: "", city: "", phone: "", about: "", languages: "",
   availability: "", timing: "", registrationNumber: "", treatments: "", website: "", instagram: "",
   youtube: "", linkedin: "", consultationTypes: "clinic", avatar: "", mapsUrl: "",
@@ -77,7 +79,7 @@ export default function DoctorProfileManager() {
       if (!doctor) return;
       setForm({
         name: inputValue(doctor.name), qualification: inputValue(doctor.qualification),
-        specialization: inputValue(doctor.specialization), experience: inputValue(doctor.experience),
+        specialization: parseSpecializations(doctor.specialization), experience: inputValue(doctor.experience),
         fee: inputValue(doctor.fee), hospital: inputValue(doctor.hospital), clinicName: inputValue(doctor.clinicName),
         address: inputValue(doctor.address), city: inputValue(doctor.city), phone: inputValue(doctor.phone),
         about: inputValue(doctor.about), languages: (doctor.languages ?? []).join(", "),
@@ -101,9 +103,13 @@ export default function DoctorProfileManager() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.specialization.length) {
+      setMessage("Select at least one specialization before saving your profile.");
+      return;
+    }
     setSaving(true); setMessage("");
     const payload = {
-      name: form.name, qualification: form.qualification, specialization: form.specialization,
+       name: form.name, qualification: form.qualification, specialization: form.specialization.join(", "),
       experience: Number(form.experience) || 0, fee: Number(form.fee) || 500, hospital: form.hospital,
       clinicName: form.clinicName, address: form.address, city: form.city, phone: form.phone, about: form.about,
       languages: form.languages.split(",").map((v) => v.trim()).filter(Boolean),
@@ -143,7 +149,7 @@ export default function DoctorProfileManager() {
 
   const fields: Array<[keyof Form, string, string, boolean?]> = [
     ["name", "Doctor name", "Dr. Your Name", true], ["qualification", "Qualification", "MBBS, MD"],
-    ["specialization", "Specialization", "Cardiologist"], ["experience", "Experience (years)", "10"],
+    ["experience", "Experience (years)", "10"],
     ["fee", "Consultation fee (₹)", "500"], ["hospital", "Hospital", "Hospital name"],
     ["clinicName", "Clinic name", "Clinic name"], ["address", "Address", "Full clinic address"],
     ["city", "City", "Mumbai", true], ["phone", "Phone", "+91...", true],
@@ -200,6 +206,12 @@ export default function DoctorProfileManager() {
                   <input value={form.avatar.startsWith("data:") ? "" : form.avatar} onChange={(event) => setField("avatar", event.target.value)} placeholder="Or paste an image URL" className="mt-3 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
                 </div>
               </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-foreground">Specializations <span className="text-destructive">*</span>
+                <SpecializationMultiSelect selected={form.specialization} onChange={(values) => setForm((current) => ({ ...current, specialization: values }))} />
+              </label>
+              <p className="mt-1.5 text-xs text-muted-foreground">Select every area you practice. Patients will see all selected specializations.</p>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               {fields.map(([key, label, placeholder, required]) => (
