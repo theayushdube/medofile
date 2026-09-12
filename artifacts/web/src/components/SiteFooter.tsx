@@ -8,22 +8,46 @@ const footerLinks = [
   { label: "Contact", href: "/contact" },
 ];
 
+const patientLinks = [
+  { label: "Find Doctors", href: "/doctors" },
+  { label: "AI Assistant", href: "/healthbot" },
+  { label: "Home Visit", href: "/doctors" },
+  { label: "Book Appointment", href: "/doctors" },
+];
+
+const doctorLinks = [
+  { label: "Join Medofile", href: "/register?role=doctor" },
+  { label: "Grow Practice", href: "/register?role=doctor" },
+  { label: "Create a Profile", href: "/register?role=doctor" },
+];
+
 const legalLinks = [
   { label: "Privacy Policy", href: "/privacy-policy" },
   { label: "Terms of Service", href: "/terms" },
 ];
 
+function FooterLinkColumn({ title, links }: { title: string; links: Array<{ label: string; href: string }> }) {
+  return (
+    <div>
+      <h2 className="text-sm font-semibold text-white">{title}</h2>
+      <nav className="mt-4 flex flex-col items-start gap-3 text-sm text-blue-100">
+        {links.map((link) => <Link key={link.label} href={link.href} className="hover:text-white">{link.label}</Link>)}
+      </nav>
+    </div>
+  );
+}
+
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-[#0F2040] text-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-[1.3fr_1fr_1fr]">
+    <footer className="border-t border-white/10 bg-gradient-to-br from-[#0F2040] to-[#0A3D8F] text-white">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-[1.35fr_1fr_1fr_1fr]">
         <div>
           <Link href="/" className="inline-flex items-center gap-2.5" aria-label="Medofile home">
-            <img src="/brand-mark.svg" alt="" className="h-9 w-9 rounded-xl bg-white shadow-sm" />
+            <img src="/brand-mark.svg" alt="" className="h-9 w-9 rounded-xl shadow-sm" />
             <span className="text-xl font-bold tracking-tight">Medofile</span>
           </Link>
           <p className="mt-4 max-w-sm text-sm leading-6 text-blue-100">
-            Connected healthcare that helps patients find trusted doctors, understand their care, and stay organized before and after appointments.
+            Your complete healthcare platform — connecting patients with trusted doctors across India.
           </p>
           <div className="mt-5 flex flex-col gap-2.5 text-sm text-blue-100">
             <a className="inline-flex items-center gap-2 hover:text-white" href="mailto:admin@digitaldhatu.com">
@@ -35,24 +59,18 @@ export function SiteFooter() {
           </div>
         </div>
 
+        <FooterLinkColumn title="For Patients" links={patientLinks} />
+        <FooterLinkColumn title="For Doctors" links={doctorLinks} />
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[.14em] text-teal-200">Medofile</h2>
-          <nav className="mt-4 flex flex-col items-start gap-3 text-sm text-blue-100" aria-label="Company">
-            {footerLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="hover:text-white">{link.label}</Link>
-            ))}
-          </nav>
-        </div>
-
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[.14em] text-teal-200">Support & legal</h2>
-          <div className="mt-4 flex flex-col items-start gap-3 text-sm text-blue-100">
-            {legalLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="hover:text-white">{link.label}</Link>
-            ))}
-            <Link href="/doctors" className="inline-flex items-center gap-2 hover:text-white">
-              <MapPin className="h-4 w-4 text-teal-300" /> Find care near you
-            </Link>
+          <FooterLinkColumn title="Company" links={footerLinks} />
+          <div className="mt-6">
+            <h2 className="text-sm font-semibold text-white">Support & legal</h2>
+            <div className="mt-4 flex flex-col items-start gap-3 text-sm text-blue-100">
+              {legalLinks.map((link) => <Link key={link.href} href={link.href} className="hover:text-white">{link.label}</Link>)}
+              <Link href="/doctors" className="inline-flex items-center gap-2 hover:text-white">
+                <MapPin className="h-4 w-4 text-teal-300" /> Find care near you
+              </Link>
+            </div>
           </div>
         </div>
       </div>

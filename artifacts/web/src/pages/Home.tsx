@@ -451,49 +451,6 @@ export default function Home() {
         </motion.section>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gradient-to-br from-[#0F2040] to-[#0A3D8F] text-white mt-16 pt-12 pb-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img src="/brand-mark.svg" alt="" className="w-8 h-8 rounded-lg" />
-                <span className="text-xl font-bold">Medofile</span>
-              </div>
-              <p className="text-white/60 text-sm leading-relaxed">Your complete healthcare platform — connecting patients with the best doctors across India.</p>
-            </div>
-            {[
-              { title: "For Patients", links: [{ label: "Find Doctors", href: "/doctors" }, { label: "AI Assistant", href: "/healthbot" }, { label: "Home Visit", href: "/doctors" }, { label: "Book Appointment", href: "/doctors" }] },
-              { title: "For Doctors", links: [{ label: "Join Medofile", href: "/register" }, { label: "Grow Practice", href: "/register" }, { label: "Create a Profile", href: "/register" }] },
-              { title: "Company", links: [{ label: "About Us", href: "#" }, { label: "Blog", href: "#" }, { label: "Careers", href: "#" }, { label: "Contact", href: "#" }] },
-            ].map((col) => (
-              <div key={col.title}>
-                <div className="font-semibold mb-3 text-white/90">{col.title}</div>
-                <ul className="space-y-2">
-                  {col.links.map((link) => (
-                    <li key={link.label}>
-                      <button
-                        onClick={() => navigate(link.href)}
-                        className="text-white/55 hover:text-white text-sm transition-colors text-left"
-                      >
-                        {link.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
-            <div className="text-white/50 text-sm">© 2026 Medofile. All rights reserved.</div>
-            <div className="flex gap-4 text-white/50 text-sm">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-white transition-colors">Help</a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
