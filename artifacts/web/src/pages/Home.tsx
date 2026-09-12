@@ -75,6 +75,14 @@ export default function Home() {
 
   const showFiltered = !!(search || selectedSpec || city !== "All Cities");
   const specialtyIcons = [HeartPulse, Brain, Baby, Bone, Eye, Stethoscope];
+  const careSpecializations = useMemo(() => {
+    const known = new Set(SPECIALIZATIONS.map((specialization) => specialization.name.toLowerCase()));
+    const custom = doctors
+      .map((doctor) => doctor.specialization.trim())
+      .filter((specialization) => specialization && !known.has(specialization.toLowerCase()))
+      .map((name, index) => ({ id: `custom-${index}-${name.toLowerCase().replace(/\W+/g, "-")}`, name, emoji: "✦", color: "#0A56B7" }));
+    return [...SPECIALIZATIONS, ...custom];
+  }, [doctors]);
   const heroContent = heroMode === "patient"
     ? {
         eyebrow: "India's connected care network",
@@ -300,7 +308,7 @@ export default function Home() {
               <span className={`w-10 h-10 rounded-xl flex items-center justify-center ${!selectedSpec ? "bg-white/15" : "bg-secondary text-primary"}`}><Activity className="w-5 h-5" /></span>
               <span className="text-xs font-medium text-center leading-tight">All</span>
             </motion.button>
-            {SPECIALIZATIONS.map((sp, index) => {
+            {careSpecializations.map((sp, index) => {
               const Icon = specialtyIcons[index % specialtyIcons.length];
               return (
               <motion.button

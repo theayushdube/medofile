@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/react";
 import { useLocation, useRoute } from "wouter";
-import { ArrowLeft, Save, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Save, ShieldCheck, ImagePlus, Upload } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 
 type Form = {
@@ -25,6 +25,33 @@ function inputValue(value: unknown) {
   return value == null ? "" : String(value);
 }
 
+function prepareAvatar(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new window.Image();
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const maxDimension = 900;
+      const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const context = canvas.getContext("2d");
+      if (!context) { reject(new Error("Unable to prepare image")); return; }
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (!blob) { reject(new Error("Unable to encode image")); return; }
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error ?? new Error("Unable to read image"));
+        reader.readAsDataURL(blob);
+      }, "image/jpeg", 0.84);
+    };
+    image.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Unable to load image")); };
+    image.src = objectUrl;
+  });
+}
+
 export default function DoctorProfileManager() {
   const [, params] = useRoute("/doctor-profile/manage/:id");
   const [, navigate] = useLocation();
@@ -32,6 +59,7 @@ export default function DoctorProfileManager() {
   const [form, setForm] = useState<Form>(empty);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [imageBusy, setImageBusy] = useState(false);
   const id = params?.id;
 
   useEffect(() => {
@@ -124,7 +152,7 @@ export default function DoctorProfileManager() {
     ["treatments", "Treatments", "Acne care, General consultation"], ["consultationTypes", "Consultation types", "clinic, home"],
     ["website", "Website", "https://..."], ["instagram", "Instagram", "@handle"],
     ["youtube", "YouTube", "Channel name"], ["linkedin", "LinkedIn", "Profile name"],
-    ["avatar", "Profile image URL", "https://..."], ["mapsUrl", "Google Maps URL", "https://maps.google.com/..."],
+     ["mapsUrl", "Google Maps URL", "https://maps.google.com/..."],
     ["education", "Education", "MBBS | AIIMS | 2015"], ["memberships", "Memberships", "IMA, Cardiology Society"],
     ["insurances", "Insurance accepted", "Star Health, HDFC Ergo"], ["branches", "Branches", "Main Clinic | Address | 10 AM - 2 PM"],
   ];
@@ -140,6 +168,39 @@ export default function DoctorProfileManager() {
             <div><h1 className="text-2xl font-bold text-foreground">Manage your doctor profile</h1><p className="text-sm text-muted-foreground mt-1">These details appear on your doctor card, full profile, bookings, and AI recommendations.</p></div>
           </div>
           <form onSubmit={save} className="mt-8">
+            <div className="mb-6 rounded-2xl border border-border bg-muted/40 p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-secondary border border-border shrink-0 flex items-center justify-center">
+                  {form.avatar ? <img src={form.avatar} alt="Doctor profile preview" className="w-full h-full object-cover" /> : <ImagePlus className="w-7 h-7 text-primary" />}
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">Profile image</p>
+                  <p className="text-xs text-muted-foreground mt-1">Upload a clear headshot. It will appear on your public profile, doctor cards, and AI recommendations.</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <label className="inline-flex items-center gap-2 rounded-xl bg-primary text-white px-3 py-2 text-sm font-semibold cursor-pointer hover:bg-primary/90">
+                      <Upload className="w-4 h-4" /> {imageBusy ? "Preparing..." : "Upload image"}
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="sr-only"
+                        disabled={imageBusy}
+                        onChange={async (event) => {
+                          const file = event.target.files?.[0];
+                          event.target.value = "";
+                          if (!file) return;
+                          setImageBusy(true);
+                          try { setField("avatar", await prepareAvatar(file)); setMessage(""); }
+                          catch { setMessage("Unable to prepare that image. Please choose a JPG, PNG, or WebP photo."); }
+                          finally { setImageBusy(false); }
+                        }}
+                      />
+                    </label>
+                    {form.avatar && <button type="button" onClick={() => setField("avatar", "")} className="text-sm font-semibold text-muted-foreground hover:text-destructive">Remove image</button>}
+                  </div>
+                  <input value={form.avatar.startsWith("data:") ? "" : form.avatar} onChange={(event) => setField("avatar", event.target.value)} placeholder="Or paste an image URL" className="mt-3 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+                </div>
+              </div>
+            </div>
             <div className="grid sm:grid-cols-2 gap-4">
               {fields.map(([key, label, placeholder, required]) => (
                 <label key={key} className={`${key === "about" ? "sm:col-span-2" : ""} block text-sm font-medium text-foreground`}>

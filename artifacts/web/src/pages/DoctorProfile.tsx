@@ -165,6 +165,17 @@ export default function DoctorProfile() {
               <p className="text-blue-200 font-medium">{doctor.qualification}</p>
               <p className="text-blue-300 text-sm mt-0.5">{doctor.clinicName} • {doctor.city}</p>
 
+              {Object.keys(doctor.socials).length > 0 && (
+                <div className="mt-4">
+                  <div className="text-xs font-semibold uppercase tracking-[.14em] text-white/60 mb-2">Connect Online</div>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(doctor.socials).map(([key, value]) =>
+                      value ? <SocialIcon key={key} platform={key} value={value} label={key.charAt(0).toUpperCase() + key.slice(1)} /> : null
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-4 mt-3">
                 <div className="flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
@@ -484,25 +495,6 @@ export default function DoctorProfile() {
                 )}
               </div>
             </div>
-
-            {/* Social media */}
-            {Object.keys(doctor.socials).length > 0 && (
-              <div className="bg-white rounded-2xl border border-border p-5">
-                <h3 className="font-semibold text-foreground text-sm mb-3">Connect Online</h3>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(doctor.socials).map(([key, value]) =>
-                    value ? (
-                      <SocialIcon
-                        key={key}
-                        platform={key}
-                        value={value}
-                        label={key.charAt(0).toUpperCase() + key.slice(1)}
-                      />
-                    ) : null
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Analytics teaser */}
             <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl border border-primary/20 p-5">
