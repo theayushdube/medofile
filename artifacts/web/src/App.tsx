@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Suspense, lazy, type ReactNode } from "react";
 import { MessageCircle } from "lucide-react";
 import NotFound from "@/pages/not-found";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const Home = lazy(() => import("@/pages/Home"));
 const DoctorProfile = lazy(() => import("@/pages/DoctorProfile"));
@@ -20,6 +21,11 @@ const DoctorProfileManager = lazy(() => import("@/pages/DoctorProfileManager"));
 const Account = lazy(() => import("@/pages/Account"));
 const BlogIndex = lazy(() => import("@/pages/BlogIndex"));
 const BlogArticle = lazy(() => import("@/pages/BlogArticle"));
+const AboutUs = lazy(() => import("@/pages/AboutUs"));
+const Careers = lazy(() => import("@/pages/Careers"));
+const Contact = lazy(() => import("@/pages/Contact"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const Terms = lazy(() => import("@/pages/Terms"));
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -87,6 +93,11 @@ function Router() {
         <Route path="/account" component={Account} />
         <Route path="/blog" component={BlogIndex} />
         <Route path="/blog/:slug" component={BlogArticle} />
+        <Route path="/about" component={AboutUs} />
+        <Route path="/careers" component={Careers} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/privacy-policy" component={PrivacyPolicy} />
+        <Route path="/terms" component={Terms} />
         <Route path="/sign-in/*?">{() => authCard(
           <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />,
           <p className="text-center text-sm text-muted-foreground mt-4">Are you a doctor? <a className="font-semibold text-primary hover:underline" href={`${basePath}/register?role=doctor`}>Join Medofile as a doctor</a></p>,
@@ -143,6 +154,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Router />
+          <SiteFooter />
           <FloatingAssistant />
           <Toaster />
         </TooltipProvider>

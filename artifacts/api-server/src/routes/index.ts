@@ -7,6 +7,7 @@ import bookingsRouter from "./bookings.js";
 import adminUsersRouter from "./adminUsersRoute.js";
 import accountsRouter from "./accounts.js";
 import blogRouter from "./blog.js";
+import contactRouter from "./contact.js";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(bookingsRouter);
 router.use(adminUsersRouter);
 router.use(accountsRouter);
 router.use(blogRouter);
+router.use(contactRouter);
 
 export default router;
