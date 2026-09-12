@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useDoctor } from "@/hooks/useDoctors";
 import { Navbar } from "@/components/Navbar";
+import { usePageSeo } from "@/lib/seo";
 
 const TABS = ["Overview", "Treatments", "Reviews", "Location"] as const;
 type Tab = (typeof TABS)[number];
@@ -63,6 +64,13 @@ export default function DoctorProfile() {
   const [reviewNotice, setReviewNotice] = useState("");
 
   const { doctor, loading } = useDoctor(params?.id);
+  usePageSeo({
+    title: doctor ? `${doctor.name} | ${doctor.specialization} | Medofile` : "Find a Doctor Near Me | Medofile",
+    description: doctor
+      ? `View ${doctor.name}'s ${doctor.specialization} profile on Medofile, including experience, location, care options, reviews, and appointment details.`
+      : "Find a trusted doctor near you in India and book your next appointment with Medofile.",
+    path: params?.id ? `/doctors/${params.id}` : "/doctors",
+  });
 
   useEffect(() => {
     if (!isLoaded || !user || !params?.id) return;

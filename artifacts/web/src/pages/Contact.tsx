@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { CheckCircle2, Mail, MapPin, Phone, Send } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { usePageSeo } from "@/lib/seo";
 
 type ContactFields = { name: string; email: string; phone: string; subject: string; message: string; website: string };
 const initialFields: ContactFields = { name: "", email: "", phone: "", subject: "", message: "", website: "" };
 
 export default function Contact() {
+  usePageSeo({ title: "Contact Medofile | Healthcare Support in India", description: "Contact Medofile for support, feedback, partnerships, or questions about finding a doctor near you and booking care.", path: "/contact" });
   const [fields, setFields] = useState<ContactFields>(initialFields);
   const [status, setStatus] = useState<{ type: "idle" | "success" | "error"; text: string }>({ type: "idle", text: "" });
   const [sending, setSending] = useState(false);

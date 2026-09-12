@@ -5,6 +5,7 @@ import { SPECIALIZATIONS } from "@/data/doctors";
 import { useDoctors } from "@/hooks/useDoctors";
 import { Navbar } from "@/components/Navbar";
 import { DoctorCard } from "@/components/DoctorCard";
+import { usePageSeo } from "@/lib/seo";
 
 const CITIES = ["All Cities", "New Delhi", "Mumbai", "Bengaluru", "Hyderabad", "Kolkata", "Gurugram"];
 const SORT_OPTIONS = ["Relevance", "Rating: High to Low", "Fee: Low to High", "Experience: Most"];
@@ -26,6 +27,11 @@ function nearestCity(lat: number, lng: number): string {
 }
 
 export default function DoctorList() {
+  usePageSeo({
+    title: "Find a Doctor Near Me | Search Trusted Doctors | Medofile",
+    description: "Find a doctor near me in India by specialty, city, availability, consultation type, and fees. Compare trusted Medofile profiles and book care.",
+    path: "/doctors",
+  });
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("All Cities");
   const [selectedSpec, setSelectedSpec] = useState("");

@@ -1,6 +1,8 @@
 import { Navbar } from "@/components/Navbar";
+import { usePageSeo } from "@/lib/seo";
 
 export default function PrivacyPolicy() {
+  usePageSeo({ title: "Privacy Policy | Medofile Healthcare", description: "Read Medofile's privacy policy to understand how we handle account, appointment, contact, and health-related information.", path: "/privacy-policy" });
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

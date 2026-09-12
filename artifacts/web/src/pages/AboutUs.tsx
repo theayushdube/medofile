@@ -1,8 +1,10 @@
 import { ArrowRight, HeartPulse, ShieldCheck, UsersRound } from "lucide-react";
 import { Link } from "wouter";
 import { Navbar } from "@/components/Navbar";
+import { usePageSeo } from "@/lib/seo";
 
 export default function AboutUs() {
+  usePageSeo({ title: "About Medofile | Connected Healthcare in India", description: "Learn how Medofile helps patients find trusted doctors near them, book appointments, and stay connected to their care journey.", path: "/about" });
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

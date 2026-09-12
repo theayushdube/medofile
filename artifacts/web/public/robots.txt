@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://medofile.com/sitemap.xml

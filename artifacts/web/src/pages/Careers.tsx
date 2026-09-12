@@ -1,8 +1,10 @@
 import { ArrowRight, BriefcaseBusiness, HeartPulse, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { Navbar } from "@/components/Navbar";
+import { usePageSeo } from "@/lib/seo";
 
 export default function Careers() {
+  usePageSeo({ title: "Careers at Medofile | Build Better Healthcare", description: "Join Medofile and help make it easier for people across India to find trusted doctors and navigate their care.", path: "/careers" });
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

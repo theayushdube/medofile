@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   Search, ChevronDown, Sparkles, ArrowRight, CheckCircle, LocateFixed, Activity,
   BadgeCheck, CalendarDays, HeartPulse, Home as HomeIcon, FlaskConical, Siren,
@@ -11,6 +11,7 @@ import { parseSpecializations } from "@/data/specializations";
 import { useDoctors } from "@/hooks/useDoctors";
 import { Navbar } from "@/components/Navbar";
 import { DoctorCard } from "@/components/DoctorCard";
+import { usePageSeo } from "@/lib/seo";
 
 const CITIES = ["New Delhi", "Mumbai", "Bengaluru", "Hyderabad", "Kolkata", "Gurugram", "Chennai", "Pune"];
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -41,6 +42,11 @@ const fadeIn: Variants = { hidden: { opacity: 0 }, show: { opacity: 1, transitio
 
 export default function Home() {
   const [, navigate] = useLocation();
+  usePageSeo({
+    title: "Doctor Near Me in India | Find Trusted Doctors | Medofile",
+    description: "Looking for a doctor near me? Find trusted doctors in India by specialty or city, compare profiles, and book an appointment with Medofile.",
+    path: "/",
+  });
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("All Cities");
   const [selectedSpec, setSelectedSpec] = useState("");
@@ -87,8 +93,8 @@ export default function Home() {
   const heroContent = heroMode === "patient"
     ? {
         eyebrow: "India's connected care network",
-        title: "Care that feels closer.",
-        description: "Find trusted doctors, understand your symptoms with AI, and book care that fits your life — all in one calm, connected place.",
+        title: "Find a trusted doctor near me.",
+        description: "Search trusted doctors near you, understand your symptoms with AI, and book care that fits your life — all in one calm, connected place.",
         action: "Find my doctor",
       }
     : {
@@ -449,6 +455,21 @@ export default function Home() {
             </div>
           </div>
         </motion.section>
+
+        <section className="mt-14 rounded-[1.75rem] border border-border bg-white p-7 shadow-sm md:p-9" aria-labelledby="doctor-near-me-heading">
+          <p className="text-xs font-semibold uppercase tracking-[.16em] text-primary">Find care near you</p>
+          <h2 id="doctor-near-me-heading" className="mt-3 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Looking for a doctor near me?</h2>
+          <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">
+            Medofile makes it easier to find a doctor near you in India. Search by specialty, city, consultation type, or availability, then compare trusted profiles before booking an appointment.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold">
+            {["New Delhi", "Mumbai", "Bengaluru", "Hyderabad"].map((cityName) => (
+              <Link key={cityName} href={`/doctors?city=${encodeURIComponent(cityName)}`} className="rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-primary hover:bg-primary/10">
+                Doctors near me in {cityName}
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
 
     </div>

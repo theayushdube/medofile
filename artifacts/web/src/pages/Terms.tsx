@@ -1,6 +1,8 @@
 import { Navbar } from "@/components/Navbar";
+import { usePageSeo } from "@/lib/seo";
 
 export default function Terms() {
+  usePageSeo({ title: "Terms of Service | Medofile Healthcare", description: "Review the Medofile terms of service for doctor discovery, appointment requests, healthcare information, and account use.", path: "/terms" });
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

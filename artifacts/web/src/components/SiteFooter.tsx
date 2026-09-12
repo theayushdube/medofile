@@ -40,7 +40,7 @@ function FooterLinkColumn({ title, links }: { title: string; links: Array<{ labe
 export function SiteFooter() {
   return (
     <footer className="border-t border-white/10 bg-gradient-to-br from-[#0F2040] to-[#0A3D8F] text-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-[1.35fr_1fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-x-8 gap-y-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-[1.35fr_repeat(4,minmax(0,1fr))]">
         <div>
           <Link href="/" className="inline-flex items-center gap-2.5" aria-label="Medofile home">
             <img src="/brand-mark.svg" alt="" className="h-9 w-9 rounded-xl shadow-sm" />
@@ -61,16 +61,14 @@ export function SiteFooter() {
 
         <FooterLinkColumn title="For Patients" links={patientLinks} />
         <FooterLinkColumn title="For Doctors" links={doctorLinks} />
+        <FooterLinkColumn title="Company" links={footerLinks} />
         <div>
-          <FooterLinkColumn title="Company" links={footerLinks} />
-          <div className="mt-6">
-            <h2 className="text-sm font-semibold text-white">Support & legal</h2>
-            <div className="mt-4 flex flex-col items-start gap-3 text-sm text-blue-100">
-              {legalLinks.map((link) => <Link key={link.href} href={link.href} className="hover:text-white">{link.label}</Link>)}
-              <Link href="/doctors" className="inline-flex items-center gap-2 hover:text-white">
-                <MapPin className="h-4 w-4 text-teal-300" /> Find care near you
-              </Link>
-            </div>
+          <h2 className="text-sm font-semibold text-white">Support & legal</h2>
+          <div className="mt-4 flex flex-col items-start gap-3 text-sm text-blue-100">
+            {legalLinks.map((link) => <Link key={link.href} href={link.href} className="hover:text-white">{link.label}</Link>)}
+            <Link href="/doctors" className="inline-flex items-center gap-2 hover:text-white">
+              <MapPin className="h-4 w-4 text-teal-300" /> Find care near you
+            </Link>
           </div>
         </div>
       </div>
