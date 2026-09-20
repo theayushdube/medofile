@@ -18,3 +18,17 @@ uri = "file://.local/outputs/Medofile-Overview.pptx"
 type = "slides"
 title = "Medofile Overview.pptx"
 logical_id = "28f17bd8-d109-47e0-9617-10462723f0a7"
+
+[[outputs]]
+id = "M_maOGPU3LEiyxL4Chwu7"
+uri = "file://docs/Medofile-Project-Dossier.pdf"
+type = "pdf"
+title = "Medofile Complete Project Dossier"
+description = "A complete PDF overview of Medofile’s product workflows, AI services, technology stack, architecture, database, API, security, SEO, deployment, and current implementation status."
+logical_id = "faa6e4da-417d-479e-ba6a-f660e16fe573"
+content_hash = "sha256:216a92ca417e46787c0fe3d665c3e67df6e743cb52210759ae2f71c01a0b2d65"
+size = 369245
+mtime_ms = 1789889003816
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:2ea96d90-16e1-49ed-8cb9-9f8bd492443e/faa6e4da-417d-479e-ba6a-f660e16fe573/55fedac3-6dcf-4d9b-bcfa-385843c66c8a"
+storage_version_token = "1789889005099718"
+content_type = "application/pdf"

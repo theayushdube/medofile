@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Medofile — Complete Project Dossier</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 18mm; }
+  :root { --navy:#071A3A; --navy2:#0F2040; --blue:#0A56B7; --teal:#00A996; --ink:#18324C; --muted:#5E7185; --line:#D9E5EF; --pale:#F3F7FB; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; color:var(--ink); font-family:Arial, Helvetica, sans-serif; font-size:10.2pt; line-height:1.52; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { background:#fff; }
+  h1,h2,h3,h4 { color:var(--navy); margin:0 0 8px; line-height:1.18; }
+  h1 { font-size:30pt; letter-spacing:-.8px; }
+  h2 { font-size:19pt; margin-top:4px; padding-bottom:6px; border-bottom:2px solid var(--teal); }
+  h3 { font-size:13.5pt; margin-top:18px; }
+  h4 { font-size:10.8pt; margin-top:12px; }
+  p { margin:6px 0 10px; }
+  ul, ol { margin:6px 0 12px 20px; padding:0; }
+  li { margin:3px 0; }
+  a { color:var(--blue); text-decoration:none; }
+  .cover { min-height:245mm; margin:-18mm -16mm -18mm; padding:30mm 22mm 20mm; color:white; background:linear-gradient(135deg,var(--navy),#0A56B7 65%,var(--teal)); display:flex; flex-direction:column; justify-content:space-between; }
+  .brand { display:flex; align-items:center; gap:11px; font-size:19pt; font-weight:700; letter-spacing:-.3px; }
+  .brand-mark { width:38px; height:38px; border-radius:11px; background:white; padding:5px; }
+  .cover .eyebrow { color:#A9F2DF; text-transform:uppercase; letter-spacing:2.5px; font-size:9pt; font-weight:700; margin-top:45mm; }
+  .cover h1 { color:white; max-width:155mm; margin-top:12px; }
+  .cover .lead { max-width:145mm; color:#E7F2FF; font-size:13pt; line-height:1.65; margin-top:14px; }
+  .cover-meta { display:flex; gap:24px; flex-wrap:wrap; color:#D6ECFF; font-size:9.5pt; }
+  .cover-meta strong { display:block; color:white; font-size:11pt; margin-bottom:2px; }
+  .section { page-break-before:always; }
+  .section.first { page-break-before:auto; }
+  .section-kicker { color:var(--blue); font-size:8.5pt; text-transform:uppercase; letter-spacing:1.8px; font-weight:700; margin-bottom:5px; }
+  .intro { font-size:11pt; color:#36536C; max-width:170mm; }
+  .callout { background:var(--pale); border:1px solid #CFE0EF; border-left:4px solid var(--teal); padding:11px 13px; border-radius:7px; margin:12px 0; }
+  .warning { background:#FFF8ED; border-color:#F3D7A6; border-left-color:#E38B17; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .card { border:1px solid var(--line); border-radius:8px; padding:11px; background:white; break-inside:avoid; }
+  .card h3, .card h4 { margin-top:0; }
+  .card p:last-child { margin-bottom:0; }
+  .tag { display:inline-block; border-radius:20px; padding:3px 8px; background:#E8F8F5; color:#087A6E; font-size:8.5pt; font-weight:700; margin:2px 4px 2px 0; }
+  table { width:100%; border-collapse:collapse; margin:10px 0 14px; font-size:9pt; break-inside:avoid; }
+  th { text-align:left; background:var(--navy2); color:white; padding:7px 8px; font-size:8.5pt; }
+  td { border:1px solid var(--line); padding:7px 8px; vertical-align:top; }
+  tr:nth-child(even) td { background:#F8FBFD; }
+  .flow { display:flex; align-items:stretch; gap:5px; margin:13px 0 17px; }
+  .flow-step { flex:1; background:var(--pale); border:1px solid #CFE0EF; border-radius:7px; padding:9px 7px; text-align:center; font-size:8.5pt; }
+  .flow-step strong { display:block; color:var(--navy); font-size:9.5pt; margin-bottom:3px; }
+  .arrow { display:flex; align-items:center; color:var(--teal); font-size:14pt; font-weight:700; }
+  .architecture { border:1px solid #CFE0EF; border-radius:10px; padding:14px; background:#F8FBFD; }
+  .arch-row { display:flex; gap:8px; justify-content:center; align-items:center; margin:7px 0; }
+  .arch-box { flex:1; text-align:center; background:white; border:1px solid #BCD3E6; border-radius:7px; padding:9px 7px; font-size:8.7pt; }
+  .arch-box strong { display:block; color:var(--navy); }
+  .arch-arrow { text-align:center; color:var(--teal); font-weight:700; font-size:15pt; }
+  .toc li { margin:6px 0; }
+  .mono { font-family:Consolas, monospace; font-size:8.5pt; background:#F0F4F8; border:1px solid #DDE7EF; border-radius:4px; padding:1px 4px; }
+  .codeblock { background:#0B1D35; color:#D9F8F1; border-radius:8px; padding:12px 14px; font-family:Consolas, monospace; font-size:8.4pt; line-height:1.55; white-space:pre-wrap; }
+  .small { font-size:8.8pt; color:var(--muted); }
+  .muted { color:var(--muted); }
+  .status-done { color:#087A6E; font-weight:700; }
+  .status-partial { color:#A66300; font-weight:700; }
+  .footer-note { margin-top:20px; padding-top:8px; border-top:1px solid var(--line); color:var(--muted); font-size:8pt; }
+  .page-break { page-break-before:always; }
+  @media print { .no-print { display:none; } }
+</style>
+</head>
+<body>
+<section class="cover">
+  <div>
+    <div class="brand"><img class="brand-mark" src="https://medofile.com/brand-mark.svg" alt="Medofile logo" /> <span>Medofile</span></div>
+    <div class="cover .eyebrow"></div>
+    <div class="eyebrow">Complete product and engineering dossier</div>
+    <h1>Connected healthcare for patients and doctors.</h1>
+    <p class="lead">A complete overview of Medofile: product purpose, user workflows, AI services, technology stack, system architecture, data model, security, SEO, deployment, and current implementation status.</p>
+  </div>
+  <div>
+    <div class="cover-meta">
+      <div><strong>Production website</strong>https://medofile.com</div>
+      <div><strong>Platform</strong>Web + Expo mobile + Express API</div>
+      <div><strong>Audience</strong>Patients, doctors, clinics, administrators</div>
+    </div>
+    <p class="small" style="color:#CFE6F7;margin-top:18px">Prepared from the current Medofile implementation and project configuration.</p>
+  </div>
+</section>
+
+<section class="section first">
+  <div class="section-kicker">01 · Executive summary</div>
+  <h2>What Medofile is</h2>
+  <p class="intro">Medofile is a connected healthcare platform that helps people find trusted doctors, make informed booking decisions, and stay organized before and after appointments.</p>
+  <div class="callout"><strong>Core product idea:</strong> Medofile is not only a doctor booking directory. It connects discovery, booking, reminders, follow-up instructions, care history, verified reviews, health education, and AI-guided next steps in one care journey.</div>
+  <div class="grid3">
+    <div class="card"><h3>Discover</h3><p>Search doctors by specialty, city, symptoms, availability, fee, language, consultation type, or current location.</p></div>
+    <div class="card"><h3>Decide</h3><p>Compare doctor profiles, experience, fees, ratings, treatments, reviews, and care options.</p></div>
+    <div class="card"><h3>Continue care</h3><p>Manage appointments, receive reminders, view timelines, read follow-up instructions, and keep care information organized.</p></div>
+  </div>
+  <h3>Product goals</h3>
+  <ul>
+    <li>Make healthcare discovery easier and more local.</li>
+    <li>Give patients more confidence before booking.</li>
+    <li>Help doctors build a trustworthy digital presence.</li>
+    <li>Support patients after an appointment, not only before it.</li>
+    <li>Use AI for guidance and organization while keeping doctors responsible for diagnosis and treatment.</li>
+  </ul>
+</section>
+
+<section class="section">
+  <div class="section-kicker">02 · People and permissions</div>
+  <h2>Users and roles</h2>
+  <table><thead><tr><th>Role</th><th>Primary purpose</th><th>Key capabilities</th><th>Authentication</th></tr></thead><tbody>
+    <tr><td><strong>Guest patient</strong></td><td>Browse and book without an account.</td><td>Search doctors, view profiles, submit guest bookings.</td><td>Not required for browsing or guest booking.</td></tr>
+    <tr><td><strong>Patient</strong></td><td>Manage a personal care journey.</td><td>Bookings, saved doctors, cancellation, rescheduling, care timeline, reminders, follow-ups, verified reviews, AI assistant.</td><td>Clerk patient account.</td></tr>
+    <tr><td><strong>Doctor</strong></td><td>Manage professional presence and patient leads.</td><td>Registration, profile editing, specialties, availability, bookings, patient view, follow-up instructions, practice insights.</td><td>Clerk doctor account linked to doctor profile.</td></tr>
+    <tr><td><strong>Admin</strong></td><td>Operate and moderate the platform.</td><td>Doctors, bookings, blog, settings, analytics, users, moderation.</td><td>Separate JWT authentication.</td></tr>
+    <tr><td><strong>Superadmin</strong></td><td>Manage privileged administration.</td><td>All admin functions plus superadmin-protected actions.</td><td>JWT with role validation.</td></tr>
+  </tbody></table>
+  <h3>Identity model</h3>
+  <p>Clerk remains the identity provider. PostgreSQL stores only the application data Medofile needs, linked to the Clerk user ID. This creates a clear ownership chain for patients, doctors, saved doctors, bookings, care events, follow-ups, and reviews.</p>
+  <div class="codeblock">Clerk user ID
+    ↓
+patientProfiles.clerkUserId / doctors.ownerClerkUserId
+    ↓
+bookings.patientClerkUserId
+    ↓
+careTimelineEvents.patientClerkUserId
+    ↓
+reminders, documents, follow-ups, saved doctors</div>
+</section>
+
+<section class="section">
+  <div class="section-kicker">03 · Patient experience</div>
+  <h2>Complete patient workflow</h2>
+  <div class="flow"><div class="flow-step"><strong>1. Discover</strong>Visit Medofile or search online.</div><div class="arrow">→</div><div class="flow-step"><strong>2. Search</strong>Use specialty, city, symptom, or location.</div><div class="arrow">→</div><div class="flow-step"><strong>3. Compare</strong>Review doctor profiles and care options.</div><div class="arrow">→</div><div class="flow-step"><strong>4. Book</strong>Choose date, time, and consultation type.</div><div class="arrow">→</div><div class="flow-step"><strong>5. Continue</strong>Receive reminders and follow-up care.</div></div>
+  <h3>1. Discover care</h3><p>The homepage is optimized for intent such as “doctor near me”, “find a trusted doctor”, “doctor by specialty”, and “book a doctor appointment”. Patients can browse before signing in.</p>
+  <h3>2. Search and location matching</h3><p>The search screen supports doctor name, specialty, city, language, gender, consultation type, availability, fee, rating, experience, and current location. When location permission is granted, the browser sends coordinates to the API and doctors are filtered and ranked by distance.</p>
+  <h3>3. Compare doctors</h3><p>A profile presents qualification, experience, specialty, fees, rating, review count, clinic and hospital information, languages, timings, treatments, education, memberships, insurance, branches, social profiles, and booking availability.</p>
+  <h3>4. Book an appointment</h3><p>The booking endpoint validates the doctor, patient contact details, date, time, and care type. Signed-in bookings are associated with the patient’s Clerk ID. Guest bookings remain supported.</p>
+  <h3>5. Manage appointments</h3><p>Signed-in patients can see appointment status, cancel eligible upcoming bookings, or reschedule them. Each important action creates a care timeline event so the patient has a record of what changed.</p>
+  <h3>6. Continue after the appointment</h3><p>Doctors can add follow-up instructions. Patients can see reminders, appointment events, follow-ups, and care history in the care space.</p>
+  <h3>7. Review after completed care</h3><p>Reviews require a completed appointment with the doctor. Suspicious or inappropriate content can be held for moderation, and published verified reviews update doctor ratings.</p>
+</section>
+
+<section class="section">
+  <div class="section-kicker">04 · Doctor experience</div>
+  <h2>Doctor and practice workflow</h2>
+  <div class="grid2">
+    <div class="card"><h3>Doctor onboarding</h3><ol><li>Doctor creates a Clerk account.</li><li>Doctor opens the registration flow.</li><li>Doctor provides professional identity and contact details.</li><li>Doctor selects one or more specialties.</li><li>Doctor adds clinic, city, timing, fees, and consultation types.</li><li>Doctor submits the profile for platform use and potential verification.</li></ol></div>
+    <div class="card"><h3>Profile presentation</h3><ul><li>Specialty and qualification</li><li>Experience and ratings</li><li>Clinic and hospital details</li><li>Languages and treatments</li><li>Education and memberships</li><li>Insurance and branches</li><li>Availability and booking options</li><li>Location and social links</li></ul></div>
+  </div>
+  <h3>Doctor dashboard</h3><p>The doctor dashboard centralizes booking leads, patient appointments, profile editing, follow-up instructions, and practice insights. Analytics include impressions, profile views, calls, chats, bookings, directions, and weekly trends.</p>
+  <h3>Specialty storage decision</h3><p>Doctor specialties currently remain in the existing string field as comma-separated values. This preserves backward compatibility with older doctor records while allowing the web registration and profile editor to use a searchable multi-select UI.</p>
+</section>
+
+<section class="section">
+  <div class="section-kicker">05 · Admin operations</div>
+  <h2>Administration workflow</h2>
+  <div class="flow"><div class="flow-step"><strong>Authenticate</strong>Admin signs in with JWT credentials.</div><div class="arrow">→</div><div class="flow-step"><strong>Operate</strong>Manage doctors, bookings, users, and content.</div><div class="arrow">→</div><div class="flow-step"><strong>Moderate</strong>Review doctor profiles, reviews, and blog content.</div><div class="arrow">→</div><div class="flow-step"><strong>Measure</strong>Review analytics and platform activity.</div></div>
+  <h3>Admin authentication</h3><p>Admin credentials are validated server-side. Passwords are bcrypt-hashed and successful login produces a signed JWT. Protected API routes validate the Bearer token. Superadmin endpoints additionally require the <span class="mono">superadmin</span> role.</p>
+  <h3>Admin responsibilities</h3><ul><li>Maintain doctor profile quality and verification state.</li><li>Review bookings and operational activity.</li><li>Moderate suspicious or pending reviews.</li><li>Manage blog settings and generated health articles.</li><li>Monitor platform analytics and content performance.</li><li>Manage authorized administrator accounts.</li></ul>
+</section>
+
+<section class="section">
+  <div class="section-kicker">06 · AI services</div>
+  <h2>AI agents and automated intelligence</h2>
+  <div class="callout"><strong>Important distinction:</strong> The production product uses controlled AI services for specific healthcare and content tasks. It does not run an autonomous general-purpose coding agent in the live application. Replit Agent assisted the project’s development, but the runtime AI features are Medofile services.</div>
+  <table><thead><tr><th>AI or automation</th><th>Technology</th><th>What it does</th><th>Safety or control</th></tr></thead><tbody>
+    <tr><td><strong>Medofile AI Health Assistant</strong></td><td>OpenAI-compatible SDK through Replit AI Integration; <span class="mono">gpt-5-mini</span>; SSE streaming.</td><td>Discusses symptoms, suggests specialist types, explains urgency, provides general wellness guidance, and returns structured doctor suggestion tags.</td><td>No definitive diagnosis, no dosage advice, doctor recommendation, emergency guidance for serious symptoms.</td></tr>
+    <tr><td><strong>Prescription Image Analyzer</strong></td><td>Vision-capable <span class="mono">gpt-5-mini</span> request through <span class="mono">/api/chat/prescription</span>.</td><td>Extracts readable medicine names, general categories, and visible instructions.</td><td>Does not diagnose, prescribe, change medication, or invent unreadable instructions.</td></tr>
+    <tr><td><strong>Daily Health Blog Generator</strong></td><td>OpenAI-compatible SDK; structured JSON; hourly scheduler check.</td><td>Creates patient-friendly health guides from approved topics, including SEO descriptions and related specialties.</td><td>Required disclaimer, prohibited-language validation, dosage rejection, similarity detection, draft/publish control.</td></tr>
+    <tr><td><strong>Doctor Match Engine</strong></td><td>Deterministic TypeScript scoring; not an LLM.</td><td>Ranks doctors using specialty, city, distance, rating, language, fees, consultation type, availability, treatments, and profile relevance.</td><td>Explainable reasons are returned with every match.</td></tr>
+    <tr><td><strong>Reminder Scheduler</strong></td><td>Database-backed timed service; not AI.</td><td>Creates and delivers due appointment reminders into the patient care timeline.</td><td>Checks appointment status and patient in-app reminder preference before delivery.</td></tr>
+  </tbody></table>
+  <h3>AI Health Assistant workflow</h3>
+  <div class="flow"><div class="flow-step"><strong>Patient message</strong>Symptoms or question.</div><div class="arrow">→</div><div class="flow-step"><strong>Safety prompt</strong>Rules and location context.</div><div class="arrow">→</div><div class="flow-step"><strong>AI response</strong>Streamed through SSE.</div><div class="arrow">→</div><div class="flow-step"><strong>Doctor tag</strong>Structured specialties and city.</div><div class="arrow">→</div><div class="flow-step"><strong>Matching API</strong>Relevant Medofile doctors.</div></div>
+</section>
+
+<section class="section">
+  <div class="section-kicker">07 · Technology</div>
+  <h2>Technology stack</h2>
+  <table><thead><tr><th>Layer</th><th>Technology</th><th>Responsibility</th></tr></thead><tbody>
+    <tr><td>Web</td><td>React, TypeScript, Vite</td><td>Patient, doctor, admin, blog, legal, contact, and public pages.</td></tr>
+    <tr><td>Routing</td><td>Wouter</td><td>Client-side route handling for public, authenticated, doctor, and admin experiences.</td></tr>
+    <tr><td>Frontend data</td><td>TanStack React Query, fetch, generated API client libraries</td><td>Server state, caching, loading, mutation, and API communication.</td></tr>
+    <tr><td>UI</td><td>Tailwind CSS, Radix UI, shadcn-style components, Lucide React</td><td>Accessible interface primitives, responsive layout, icons, forms, dialogs, menus, and cards.</td></tr>
+    <tr><td>Animation</td><td>Framer Motion</td><td>Homepage motion, transitions, doctor cards, and interactive visual elements.</td></tr>
+    <tr><td>Mobile</td><td>Expo SDK, React Native, Expo Router, TypeScript</td><td>Patient and doctor mobile application flows.</td></tr>
+    <tr><td>Backend</td><td>Node.js, Express 5, TypeScript</td><td>REST API, authentication middleware, AI endpoints, booking logic, content services, and schedulers.</td></tr>
+    <tr><td>Database</td><td>PostgreSQL, Drizzle ORM</td><td>Persistent source of truth for doctors, bookings, care, reviews, reminders, blogs, and admin data.</td></tr>
+    <tr><td>Validation</td><td>Zod, Drizzle-Zod, API schemas, OpenAPI/Orval tooling</td><td>Boundary validation and shared API type generation.</td></tr>
+    <tr><td>Authentication</td><td>Clerk for patients/doctors; JWT and bcrypt for admins</td><td>Account identity, sessions, route authorization, and role enforcement.</td></tr>
+    <tr><td>AI</td><td>OpenAI-compatible SDK through Replit AI Integrations</td><td>Chat, prescription vision, and daily health content generation.</td></tr>
+    <tr><td>Email</td><td>Resend through Replit Connectors SDK</td><td>Server-side contact enquiry delivery to admin@digitaldhatu.com.</td></tr>
+    <tr><td>Logging</td><td>Pino and pino-http</td><td>Structured backend request and service logging.</td></tr>
+    <tr><td>Deployment</td><td>Replit artifact workflows</td><td>Runs web, API, mobile, overview, and component preview services.</td></tr>
+  </tbody></table>
+</section>
+
+<section class="section">
+  <div class="section-kicker">08 · System architecture</div>
+  <h2>How the platform works technically</h2>
+  <div class="architecture">
+    <div class="arch-row"><div class="arch-box"><strong>Web browser</strong>React + Vite</div><div class="arch-box"><strong>Mobile app</strong>Expo + React Native</div><div class="arch-box"><strong>Admin console</strong>React + JWT session</div></div>
+    <div class="arch-arrow">↓ HTTPS / JSON / SSE</div>
+    <div class="arch-row"><div class="arch-box"><strong>Express API</strong><span class="small">/api</span></div><div class="arch-box"><strong>Clerk middleware</strong>Patient and doctor identity</div><div class="arch-box"><strong>Admin middleware</strong>JWT and role checks</div></div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-row"><div class="arch-box"><strong>Application services</strong>Bookings, matches, care, reminders, blogs</div><div class="arch-box"><strong>AI services</strong>Chat, vision, content generation</div><div class="arch-box"><strong>External services</strong>Resend, Clerk, OpenAI proxy</div></div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-row"><div class="arch-box"><strong>Drizzle ORM</strong>Typed PostgreSQL access</div><div class="arch-box"><strong>PostgreSQL</strong>System of record</div></div>
+  </div>
+  <h3>Standard request flow</h3>
+  <div class="codeblock">Browser or mobile app
+        ↓
+React / React Native screen
+        ↓
+React Query or fetch request
+        ↓
+Express API under /api
+        ↓
+Authentication and authorization middleware
+        ↓
+Route handler and validation
+        ↓
+Drizzle ORM
+        ↓
+PostgreSQL
+        ↓
+JSON or Server-Sent Events response
+        ↓
+UI state and visible result</div>
+  <h3>AI request flow</h3>
+  <div class="codeblock">Patient message or prescription image
+        ↓
+/api/chat or /api/chat/prescription
+        ↓
+Medofile safety prompt and request shaping
+        ↓
+OpenAI-compatible Replit AI Integration
+        ↓
+SSE or JSON response
+        ↓
+Client-side rendering and structured doctor search</div>
+</section>
+
+<section class="section">
+  <div class="section-kicker">09 · Database</div>
+  <h2>Data model and source of truth</h2>
+  <p>PostgreSQL is the source of truth for operational Medofile data. The frontend may cache responses, but core records are created and updated through the API.</p>
+  <table><thead><tr><th>Data group</th><th>Models</th><th>Purpose</th></tr></thead><tbody>
+    <tr><td>Doctors</td><td>doctors</td><td>Professional profile, location, specialty, practice information, availability, and analytics.</td></tr>
+    <tr><td>Accounts</td><td>patientProfiles, savedDoctors</td><td>Application-owned patient profile projection and saved doctor relationships.</td></tr>
+    <tr><td>Appointments</td><td>bookings</td><td>Patient contact, doctor, time, fee, consultation type, status, cancellation, and rescheduling.</td></tr>
+    <tr><td>Care history</td><td>careTimelineEvents, careDocuments</td><td>Timeline events and patient care documents.</td></tr>
+    <tr><td>Follow-up</td><td>doctorFollowUps</td><td>Doctor instructions associated with an appointment and patient.</td></tr>
+    <tr><td>Trust</td><td>doctorReviews</td><td>Verified appointment reviews, moderation state, and ratings.</td></tr>
+    <tr><td>Reminders</td><td>reminderPreferences, scheduledReminders</td><td>Reminder channel preferences, due times, delivery state, and timeline delivery.</td></tr>
+    <tr><td>AI chat</td><td>conversations, messages</td><td>Conversation and message storage for supported chat experiences.</td></tr>
+    <tr><td>Content</td><td>blogArticles, blogSettings, blogGenerationLogs, blogGenerationRuns</td><td>Published/draft articles, generation settings, locks, logs, and daily generation state.</td></tr>
+    <tr><td>Administration</td><td>adminUsers</td><td>Admin credentials, role, and access management.</td></tr>
+  </tbody></table>
+</section>
+
+<section class="section">
+  <div class="section-kicker">10 · API workflow</div>
+  <h2>API route groups</h2>
+  <table><thead><tr><th>Route group</th><th>Examples</th><th>Function</th></tr></thead><tbody>
+    <tr><td>Health and platform</td><td><span class="mono">/api/health</span></td><td>Service availability and health checks.</td></tr>
+    <tr><td>AI</td><td><span class="mono">/api/chat</span>, <span class="mono">/api/chat/prescription</span></td><td>Streaming assistant responses and prescription vision extraction.</td></tr>
+    <tr><td>Doctors</td><td><span class="mono">/api/doctors</span>, <span class="mono">/api/doctors/:id</span>, <span class="mono">/api/doctors/register</span></td><td>Search, profiles, registration, editing, verification, analytics, and reviews.</td></tr>
+    <tr><td>Matching</td><td><span class="mono">/api/doctor-matches</span>, <span class="mono">/api/doctors/suggestions</span></td><td>Explainable doctor ranking and specialty/city suggestions.</td></tr>
+    <tr><td>Bookings</td><td><span class="mono">/api/bookings</span>, <span class="mono">/api/me/bookings</span></td><td>Create, list, update, cancel, and reschedule appointments.</td></tr>
+    <tr><td>Accounts</td><td><span class="mono">/api/me/*</span></td><td>Patient profile, saved doctors, care history, reminders, and doctor-owned data.</td></tr>
+    <tr><td>Blog</td><td><span class="mono">/api/blog</span>, admin blog routes</td><td>Read content, generate articles, manage settings, and moderate drafts.</td></tr>
+    <tr><td>Contact</td><td><span class="mono">/api/contact</span></td><td>Validate enquiries and send them server-side through Resend.</td></tr>
+    <tr><td>Admin</td><td>JWT-protected admin routes</td><td>Operations, moderation, content, users, and platform management.</td></tr>
+  </tbody></table>
+</section>
+
+<section class="section">
+  <div class="section-kicker">11 · Security and privacy</div>
+  <h2>Security model</h2>
+  <div class="grid2">
+    <div class="card"><h3>Identity separation</h3><p>Clerk manages patient and doctor identity. Admin users use a separate JWT system. This prevents mixing public accounts with internal administration.</p></div>
+    <div class="card"><h3>Ownership scoping</h3><p>Patient bookings, saved doctors, care events, follow-ups, and reminders are associated with the relevant Clerk user ID.</p></div>
+    <div class="card"><h3>Server-side secrets</h3><p>OpenAI, Clerk secret, session, JWT, and Resend integration credentials are used server-side and are not shipped to the browser.</p></div>
+    <div class="card"><h3>AI guardrails</h3><p>Medical responses avoid definitive diagnosis, dosage advice, and medication changes. Serious symptoms receive emergency guidance.</p></div>
+    <div class="card"><h3>Review protection</h3><p>Reviews are tied to completed appointments and validated for length, contact details, links, and suspicious language.</p></div>
+    <div class="card"><h3>Contact protection</h3><p>Contact enquiries use input limits, email validation, a honeypot field, rate limiting, and generic delivery errors.</p></div>
+  </div>
+  <div class="callout warning"><strong>Healthcare boundary:</strong> Medofile provides discovery tools, educational information, and AI-assisted guidance. It does not replace a qualified healthcare professional or emergency services.</div>
+</section>
+
+<section class="section">
+  <div class="section-kicker">12 · SEO and growth</div>
+  <h2>Search visibility strategy</h2>
+  <p>Medofile is optimized around doctor discovery intent, especially “doctor near me” searches in India.</p>
+  <div class="grid2">
+    <div class="card"><h3>On-page SEO</h3><ul><li>Homepage title targets “Doctor Near Me in India”.</li><li>Homepage H1 includes “Find a trusted doctor near me”.</li><li>Doctor listing page has a unique title and description.</li><li>Doctor profiles receive dynamic metadata.</li><li>Supporting copy explains specialty, city, and location search.</li></ul></div>
+    <div class="card"><h3>Technical SEO</h3><ul><li>Canonical URLs</li><li>Open Graph and Twitter metadata</li><li>Organization and WebSite structured data</li><li>SearchAction schema</li><li>robots.txt</li><li>sitemap.xml</li><li>Descriptive internal links</li></ul></div>
+  </div>
+  <h3>Important ranking expectation</h3><p>SEO implementation makes the site understandable and crawlable, but rankings depend on search-engine crawling, indexing, location relevance, site authority, page quality, competition, and ongoing content publishing. Google Search Console should be used to monitor actual impressions and queries.</p>
+</section>
+
+<section class="section">
+  <div class="section-kicker">13 · Deployment</div>
+  <h2>Runtime and deployment workflow</h2>
+  <div class="flow"><div class="flow-step"><strong>Develop</strong>Work in the web, mobile, API, and shared packages.</div><div class="arrow">→</div><div class="flow-step"><strong>Validate</strong>Typecheck, build, inspect logs, and preview.</div><div class="arrow">→</div><div class="flow-step"><strong>Run workflows</strong>Web, API, mobile, overview, and sandbox.</div><div class="arrow">→</div><div class="flow-step"><strong>Publish</strong>Deploy the verified artifacts to Medofile’s domain.</div></div>
+  <table><thead><tr><th>Artifact</th><th>Role</th><th>Development workflow</th></tr></thead><tbody>
+    <tr><td><span class="mono">artifacts/web</span></td><td>Public web application</td><td>Vite development server and production static build.</td></tr>
+    <tr><td><span class="mono">artifacts/api-server</span></td><td>Express API</td><td>Build with esbuild, run Node server on port 8080.</td></tr>
+    <tr><td><span class="mono">artifacts/mobile</span></td><td>Expo mobile app</td><td>Expo and Metro development workflow.</td></tr>
+    <tr><td><span class="mono">artifacts/medofile-overview</span></td><td>Project overview presentation</td><td>Vite-based overview artifact.</td></tr>
+    <tr><td><span class="mono">artifacts/mockup-sandbox</span></td><td>Component preview environment</td><td>Isolated Vite preview workflow for design exploration.</td></tr>
+  </tbody></table>
+  <p><strong>Production website:</strong> <a href="https://medofile.com">https://medofile.com</a></p>
+</section>
+
+<section class="section">
+  <div class="section-kicker">14 · Current status</div>
+  <h2>Implemented, partial, and next-stage work</h2>
+  <table><thead><tr><th>Status</th><th>Area</th><th>Details</th></tr></thead><tbody>
+    <tr><td class="status-done">Implemented</td><td>Patient platform</td><td>Search, location matching, profiles, guest booking, accounts, saved doctors, appointment management, care timeline, follow-ups, reminders, reviews, AI assistant, prescription analysis.</td></tr>
+    <tr><td class="status-done">Implemented</td><td>Doctor platform</td><td>Registration, searchable multi-specialty selection on web, profile editing, bookings, patient view, follow-ups, analytics, image handling.</td></tr>
+    <tr><td class="status-done">Implemented</td><td>Admin platform</td><td>Separate JWT authentication, role protection, doctor and booking operations, blog management, content controls, analytics.</td></tr>
+    <tr><td class="status-done">Implemented</td><td>Public website</td><td>Home, doctor discovery, blog, About, Careers, Contact, Privacy Policy, Terms, shared footer, SEO metadata, sitemap, structured data.</td></tr>
+    <tr><td class="status-done">Implemented</td><td>AI services</td><td>Streaming symptom assistant, prescription image extraction, automated health blog generation with validation and deduplication.</td></tr>
+    <tr><td class="status-partial">Expanding</td><td>Secure attachments</td><td>Prescription and health-report attachment support is being expanded for persistent, secure patient documents.</td></tr>
+    <tr><td class="status-partial">Expanding</td><td>Mobile parity</td><td>Mobile multi-specialty selection and secure document attachment workflows are being brought to parity with the web.</td></tr>
+    <tr><td class="status-partial">Expanding</td><td>Reminder channels</td><td>Preference fields exist for email, push, and WhatsApp; the active scheduler currently delivers in-app timeline reminders.</td></tr>
+    <tr><td class="status-partial">Design decision</td><td>Specialty storage</td><td>Specialties remain comma-separated in the existing field for backward compatibility while the UI supports multi-select editing.</td></tr>
+  </tbody></table>
+</section>
+
+<section class="section">
+  <div class="section-kicker">15 · End-to-end examples</div>
+  <h2>How common scenarios work</h2>
+  <h3>Example A: Patient searches for a cardiologist near Mumbai</h3>
+  <ol><li>Patient opens Medofile and searches for cardiology.</li><li>Patient selects Mumbai or allows location access.</li><li>Frontend requests doctors with specialization, city, latitude, longitude, and radius.</li><li>API filters and sorts relevant doctors.</li><li>Doctor cards show ratings, experience, fees, clinic details, and availability.</li><li>Patient opens a profile and requests a booking.</li><li>API creates the booking and, if signed in, adds the event to the care timeline.</li></ol>
+  <h3>Example B: Patient asks the AI about recurring headaches</h3>
+  <ol><li>Patient sends the symptom through the AI Assistant.</li><li>API adds the safety system prompt.</li><li>AI describes several possibilities without diagnosing.</li><li>AI suggests an appropriate specialist, such as a neurologist or general physician.</li><li>AI returns a structured doctor recommendation tag.</li><li>Frontend requests matching doctors.</li><li>Patient can open a doctor profile and book care.</li></ol>
+  <h3>Example C: Doctor adds post-appointment instructions</h3>
+  <ol><li>Doctor opens a completed patient booking.</li><li>Doctor writes follow-up instructions.</li><li>API verifies the doctor and booking relationship.</li><li>Follow-up is stored against the appointment and patient Clerk ID.</li><li>A care timeline event is created.</li><li>Patient sees the instruction in the care section.</li></ol>
+  <h3>Example D: Visitor sends a contact enquiry</h3>
+  <ol><li>Visitor completes the contact form.</li><li>Frontend sends the form to <span class="mono">/api/contact</span>.</li><li>API validates fields, checks the honeypot, and applies rate limiting.</li><li>Resend delivers the enquiry to <strong>admin@digitaldhatu.com</strong>.</li><li>The visitor receives a success or friendly error message.</li></ol>
+</section>
+
+<section class="section">
+  <div class="section-kicker">16 · Reference</div>
+  <h2>Key project locations</h2>
+  <table><thead><tr><th>Location</th><th>Purpose</th></tr></thead><tbody>
+    <tr><td><span class="mono">artifacts/web/src/App.tsx</span></td><td>Web routing, Clerk provider, shared footer, floating assistant, and application shell.</td></tr>
+    <tr><td><span class="mono">artifacts/web/src/pages/</span></td><td>Patient, doctor, admin, blog, legal, public, and account screens.</td></tr>
+    <tr><td><span class="mono">artifacts/web/src/lib/seo.ts</span></td><td>Route-aware page titles, descriptions, Open Graph tags, Twitter tags, and canonical URLs.</td></tr>
+    <tr><td><span class="mono">artifacts/api-server/src/routes/</span></td><td>Express API route groups for chat, doctors, bookings, accounts, blogs, contact, and admin operations.</td></tr>
+    <tr><td><span class="mono">artifacts/api-server/src/services/</span></td><td>Reminder scheduling and AI blog publishing services.</td></tr>
+    <tr><td><span class="mono">lib/db/src/schema/</span></td><td>Typed Drizzle PostgreSQL schema.</td></tr>
+    <tr><td><span class="mono">lib/integrations-openai-ai-server/</span></td><td>Server-side OpenAI-compatible integration client and streaming helpers.</td></tr>
+    <tr><td><span class="mono">artifacts/mobile/app/</span></td><td>Expo Router mobile screens for patients, doctors, booking, chat, and healthbot.</td></tr>
+    <tr><td><span class="mono">artifacts/web/public/robots.txt</span></td><td>Crawler access policy and sitemap reference.</td></tr>
+    <tr><td><span class="mono">artifacts/web/public/sitemap.xml</span></td><td>Public route index for search engines.</td></tr>
+  </tbody></table>
+  <div class="callout"><strong>One-line summary:</strong> Medofile connects doctor discovery, location-aware matching, booking, AI-assisted guidance, and post-appointment care into one patient and doctor platform.</div>
+  <p class="footer-note">Medofile Project Dossier · Product, architecture, workflows, AI, security, SEO, and implementation reference.</p>
+</section>
+</body>
+</html>
